@@ -11,7 +11,8 @@ description = {
 }
 dependencies = {
    "lua ~> 5.2",
-   "metalua-parser ~> 0.7"
+   "metalua-parser ~> 0.7",
+   "luafilesystem ~> 1.6"
 }
 build = {
    type = "builtin",

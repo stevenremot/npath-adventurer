@@ -177,7 +177,7 @@ MetaValue.__index = Value
 MetaValue.__tostring = Value.toString
 
 return {
-   Codebase = Codebase,
+   Codespace = Codespace,
    Function = Function,
    Value    = Value
 }
