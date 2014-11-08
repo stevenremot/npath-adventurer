@@ -3,12 +3,10 @@
 -- Defines an ast generator from a lua code base.
 
 --------------------------------------------------------------------------------
-require('luarocks.loader') -- TODO remove
 local lfs = require('lfs')
-local inspect = require('inspect') -- TODO remove
+local compiler = require('metalua.compiler'):new()
 
 local ast = require('./ast')
-local compiler = require('metalua.compiler'):new()
 
 --------------------------------------------------------------------------------
 --- In-place appending of source to dest
@@ -26,7 +24,7 @@ end
 -- @param name    A string representing the function's name
 -- @param luaUnit THe unit output by metalua
 --
--- @return an ast.Function object
+-- @return An ast.Function object
 local function createFunctionUnit(name, luaUnit)
    return ast.Function:new(
       name,
@@ -47,7 +45,7 @@ local function analyzeLocal(luaUnit, symbols, codeSpaces)
 
    for _, ident in pairs(idents) do
       if ident.tag == "Id" then
-         symbols[ident[1]] = "value"
+         symbols[ident[1]] = ast.Value:new(ident[1])
       end
    end
 
@@ -55,7 +53,7 @@ local function analyzeLocal(luaUnit, symbols, codeSpaces)
 end
 
 --------------------------------------------------------------------------------
---- Analyze a "Set unit"
+--- Analyze a "Set" unit
 --
 -- @param luaUnit    The unit to analyze
 -- @param symbols    The table of top-level symbols with their nature
@@ -73,7 +71,7 @@ local function analyzeSet(luaUnit, symbols, codeSpaces)
          local name = ident[1][1]
          local prop = ident[2][1]
 
-         symbols[name] = "code-space"
+         symbols[name] = nil
 
          if not codeSpaces[name] then
             codeSpaces[name] = ast.Codespace:new(name)
@@ -92,6 +90,19 @@ local function analyzeSet(luaUnit, symbols, codeSpaces)
    return symbols, codeSpaces
 end
 
+--------------------------------------------------------------------------------
+--- Analyze a "Localrec" unit
+--
+-- @param luaUnit    The unit to analyze
+-- @param symbols    The table of top-level symbols with their nature
+-- @param codeSpaces The association between a code space name and its object
+--
+-- @return symbols, codeSpace
+local function analyzeLocalRec(luaUnit, symbols, codeSpaces)
+   symbols[luaUnit[1][1][1]] = createFunctionUnit(luaUnit[1][1][1], luaUnit[2])
+   return symbols, codeSpaces
+end
+
 
 --------------------------------------------------------------------------------
 --- Analyze a unit and update symbols and codeSpaces accordingly
@@ -106,6 +117,8 @@ local function analyzeUnit(luaUnit, symbols, codeSpaces)
       return analyzeLocal(luaUnit, symbols, codeSpaces)
    elseif luaUnit.tag == "Set" then
       return analyzeSet(luaUnit, symbols, codeSpaces)
+   elseif luaUnit.tag == "Localrec" then
+      return analyzeLocalRec(luaUnit, symbols, codeSpaces)
    else
       return symbols, codeSpaces
    end
@@ -117,7 +130,6 @@ end
 -- @param file A string representing the path to a source file
 local function parseSource(file)
    local luaAst = compiler:srcfile_to_ast(file)
-
    local symbols = {}
    local codeSpaces = {}
 
@@ -126,10 +138,8 @@ local function parseSource(file)
    end
 
    local units = {}
-   for symbol, tag in pairs(symbols) do
-      if tag == "value" then
-         table.insert(units, ast.Value:new(symbol))
-      end
+   for _, unit in pairs(symbols) do
+         table.insert(units, unit)
    end
 
    for _, codeSpace in pairs(codeSpaces) do
@@ -167,12 +177,8 @@ local function parseDir(dir)
    return units
 end
 
-print("--- RESULT ---")
-for _, unit in pairs(parseDir('.')) do -- TODO remove
-   print(unit)
-end
-
 return {
    parseDir = parseDir,
-   parseSource = parseSource
+   parseSource = parseSource,
+   complexityFactor = 5
 }
