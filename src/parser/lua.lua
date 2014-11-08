@@ -150,11 +150,11 @@ local function parseSource(file)
 end
 
 --------------------------------------------------------------------------------
---- Return AST for a directory
+--- Return A codespace for a directory
 --
 -- @param dir A string representing the path to a directory
 local function parseDir(dir)
-   local units = {}
+   local codespace = ast.Codespace:new(dir)
 
    for file in lfs.dir(dir) do
       if file ~= "." and file ~= ".." then
@@ -162,20 +162,25 @@ local function parseDir(dir)
          local attrs = lfs.attributes(filepath)
 
          if attrs.mode == "directory" then
-            concatAst(units, parseDir(filepath))
+            local component = parseDir(filepath)
+            if #component.components > 0 then
+               codespace:addComponent(component)
+            end
          elseif attrs.mode == "file" then
             local _, matchEnd = string.find(file, ".lua")
             if matchEnd == #file then
                local root = ast.Codespace:new(file)
                root.components = parseSource(filepath)
-               table.insert(units, root)
+               codespace:addComponent(root)
             end
          end
       end
    end
 
-   return units
+   return codespace
 end
+
+print(parseDir("../.."))
 
 return {
    parseDir = parseDir,
