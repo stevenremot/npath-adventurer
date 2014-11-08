@@ -23,7 +23,7 @@ end
 --
 -- @param luaUnit    The unit to analyze
 -- @param symbols    The table of top-level symbols with their nature
--- @param codeSpaces The association between a code space name and its components
+-- @param codeSpaces The association between a code space name and its object
 --
 -- @return symbols, codeSpace
 local function analyzeLocal(luaUnit, symbols, codeSpaces)
@@ -39,16 +39,50 @@ local function analyzeLocal(luaUnit, symbols, codeSpaces)
 end
 
 --------------------------------------------------------------------------------
+--- Analyze a "Set unit"
+--
+-- @param luaUnit    The unit to analyze
+-- @param symbols    The table of top-level symbols with their nature
+-- @param codeSpaces The association between a code space name and its object
+--
+-- @return symbols, codeSpace
+local function analyzeSet(luaUnit, symbols, codeSpaces)
+   local lhs = luaUnit[1]
+
+   for index, ident in pairs(lhs) do
+      if ident.tag == "Id" then
+         symbols[ident[1]] = "value"
+      elseif ident.tag == "Index" then
+         local name = ident[1][1]
+         local prop = ident[2][1]
+
+         symbols[name] = "code-space"
+
+         if not codeSpaces[name] then
+            codeSpaces[name] = ast.Codespace:new(name)
+         end
+
+         codeSpaces[name]:addComponent(ast.Value:new(prop))
+      end
+   end
+
+   return symbols, codeSpaces
+end
+
+
+--------------------------------------------------------------------------------
 --- Analyze a unit and update symbols and codeSpaces accordingly
 --
 -- @param luaUnit    The unit to analyze
 -- @param symbols    The table of top-level symbols with their nature
--- @param codeSpaces The association between a code space name and its components
+-- @param codeSpaces The association between a code space name and its object
 --
 -- @return symbols, codeSpace
 local function analyzeUnit(luaUnit, symbols, codeSpaces)
    if luaUnit.tag == "Local" then
       return analyzeLocal(luaUnit, symbols, codeSpaces)
+   elseif luaUnit.tag == "Set" then
+      return analyzeSet(luaUnit, symbols, codeSpaces)
    else
       return symbols, codeSpaces
    end
@@ -60,6 +94,7 @@ end
 -- @param file A string representing the path to a source file
 local function parseSource(file)
    local luaAst = compiler:srcfile_to_ast(file)
+
    local symbols = {}
    local codeSpaces = {}
 
@@ -72,6 +107,10 @@ local function parseSource(file)
       if tag == "value" then
          table.insert(units, ast.Value:new(symbol))
       end
+   end
+
+   for _, codeSpace in pairs(codeSpaces) do
+      table.insert(units, codeSpace)
    end
 
    return units
@@ -105,7 +144,10 @@ local function parseDir(dir)
    return units
 end
 
-print(inspect(parseDir('.'))) -- TODO remove
+print("--- RESULT ---")
+for _, unit in pairs(parseDir('.')) do -- TODO remove
+   print(unit)
+end
 
 return {
    parseDir = parseDir,
