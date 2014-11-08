@@ -19,6 +19,22 @@ local function concatAst(dest, source)
 end
 
 --------------------------------------------------------------------------------
+--- Create an AST function from a function unit
+--
+-- For now, the complexity is the number of lines
+--
+-- @param name    A string representing the function's name
+-- @param luaUnit THe unit output by metalua
+--
+-- @return an ast.Function object
+local function createFunctionUnit(name, luaUnit)
+   return ast.Function:new(
+      name,
+      math.max(1, luaUnit.lineinfo.last.line - luaUnit.lineinfo.first.line - 1)
+   )
+end
+
+--------------------------------------------------------------------------------
 --- Analyze a "Local" unit
 --
 -- @param luaUnit    The unit to analyze
@@ -48,6 +64,7 @@ end
 -- @return symbols, codeSpace
 local function analyzeSet(luaUnit, symbols, codeSpaces)
    local lhs = luaUnit[1]
+   local rhs = luaUnit[2]
 
    for index, ident in pairs(lhs) do
       if ident.tag == "Id" then
@@ -62,7 +79,13 @@ local function analyzeSet(luaUnit, symbols, codeSpaces)
             codeSpaces[name] = ast.Codespace:new(name)
          end
 
-         codeSpaces[name]:addComponent(ast.Value:new(prop))
+         local value = rhs[index]
+
+         if value.tag == "Function" then
+            codeSpaces[name]:addComponent(createFunctionUnit(prop, value))
+         else
+            codeSpaces[name]:addComponent(ast.Value:new(prop))
+         end
       end
    end
 
