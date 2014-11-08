@@ -3,10 +3,9 @@
 -- Defines an ast generator from a lua code base.
 
 --------------------------------------------------------------------------------
-local lfs = require('lfs')
 local compiler = require('metalua.compiler'):new()
 
-local ast = require('./ast')
+local ast = require('src.parser.ast')
 
 --------------------------------------------------------------------------------
 --- In-place appending of source to dest
@@ -156,17 +155,16 @@ end
 local function parseDir(dir)
    local codespace = ast.Codespace:new(dir)
 
-   for file in lfs.dir(dir) do
+   for _, file in pairs(love.filesystem.getDirectoryItems(dir)) do
       if file ~= "." and file ~= ".." then
          local filepath = dir .. "/" .. file
-         local attrs = lfs.attributes(filepath)
 
-         if attrs.mode == "directory" then
+         if love.filesystem.isDirectory(filepath) then
             local component = parseDir(filepath)
             if #component.components > 0 then
                codespace:addComponent(component)
             end
-         elseif attrs.mode == "file" then
+         elseif love.filesystem.isFile(filepath) then
             local _, matchEnd = string.find(file, ".lua")
             if matchEnd == #file then
                local root = ast.Codespace:new(file)
@@ -179,8 +177,6 @@ local function parseDir(dir)
 
    return codespace
 end
-
-print(parseDir("../.."))
 
 return {
    parseDir = parseDir,

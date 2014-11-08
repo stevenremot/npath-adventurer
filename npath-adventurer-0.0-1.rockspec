@@ -10,9 +10,8 @@ description = {
    license = "GPL v3"
 }
 dependencies = {
-   "lua ~> 5.2",
-   "metalua-parser ~> 0.7",
-   "luafilesystem ~> 1.6"
+   "lua ~> 5.1",
+   "metalua-parser ~> 0.7"
 }
 build = {
    type = "builtin",
