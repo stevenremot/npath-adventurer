@@ -165,6 +165,10 @@ function Value:new(name)
    return object
 end
 
+function Value:getComplexity()
+  return 1
+end
+
 function Value:isValue()
    return true
 end

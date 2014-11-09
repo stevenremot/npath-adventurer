@@ -27,7 +27,7 @@ end
 local function createFunctionUnit(name, luaUnit)
    return ast.Function:new(
       name,
-      math.max(1, luaUnit.lineinfo.last.line - luaUnit.lineinfo.first.line - 1)
+      math.max(1, (luaUnit.lineinfo.last.line - luaUnit.lineinfo.first.line - 1) / 5)
    )
 end
 
@@ -181,5 +181,4 @@ end
 return {
    parseDir = parseDir,
    parseSource = parseSource,
-   complexityFactor = 5
 }
