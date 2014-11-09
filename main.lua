@@ -19,7 +19,7 @@ local viewport = graphics.Viewport:new(2, 2, 20, 15)
 
 function love.load()
   local ast = parser.parseDir('src/')
-  
+
   local entity = world:createEntity()
   world:addComponent(
     entity,
@@ -28,7 +28,7 @@ function love.load()
         canvas:translate(100, 100):
         drawText{
           text = ast:toString(),
-          color = { r = 255, g = 255; b = 255 },
+          color = { r = 255, g = 255, b = 255 },
           x = 10, y = 10,
           width = 600
         }
@@ -54,7 +54,7 @@ function love.load()
     smile,
     geometry.Positionable:new(50, 50)
   )
-  
+
   local grassImage = love.graphics.newImage('assets/images/grass.png')
   local grass = world:createEntity()
   world:addComponent(
@@ -73,13 +73,14 @@ function love.load()
     grass,
     geometry.TilePositionable:new(3, 3, 0, 0)
   )
-  
+
 end
 
 function love.draw()
-  --graphics.render(world, canvas)
-  graphics.tilerender(world, canvas, viewport)
+  graphics.render(world, canvas)
+  --graphics.tilerender(world, canvas, viewport)
 end
+
 
 function love.update(dt)
   for _, position in world:getEntitiesWithComponent(geometry.Positionable.TYPE) do

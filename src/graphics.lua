@@ -144,7 +144,7 @@ local function render(world, canvas)
         geometry.Positionable.TYPE
       )
       renderable.draw(canvas:translate(positionable.x, positionable.y))
-    else
+    elseif not world:hasComponent(entity, geometry.TilePositionable.TYPE) then
       renderable.draw(canvas)
     end
   end
