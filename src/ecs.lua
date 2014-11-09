@@ -12,14 +12,14 @@ local MetaWorld = {}
 --
 -- @return A new world
 function World:new()
-   local world = {
-      components = {},
-      currentEntityNumber = 0,
-      freeEntities = {}
-   }
+  local world = {
+    components = {},
+    currentEntityNumber = 0,
+    freeEntities = {}
+  }
 
-   setmetatable(world, MetaWorld)
-   return world
+  setmetatable(world, MetaWorld)
+  return world
 end
 
 --------------------------------------------------------------------------------
@@ -27,12 +27,12 @@ end
 --
 -- @return A new entity
 function World:createEntity()
-   if #self.freeEntities > 0 then
-      return table.remove(self.freeEntities)
-   else
-      self.currentEntityNumber = self.currentEntityNumber + 1
-      return self.currentEntityNumber
-   end
+  if #self.freeEntities > 0 then
+    return table.remove(self.freeEntities)
+  else
+    self.currentEntityNumber = self.currentEntityNumber + 1
+    return self.currentEntityNumber
+  end
 end
 
 --------------------------------------------------------------------------------
@@ -41,10 +41,10 @@ end
 -- @param entity    An entity created with createEntity
 -- @param component A component. It must have a type field
 function World:addComponent(entity, component)
-   if not self.components[component.type] then
-      self.components[component.type] = {}
-   end
-   self.components[component.type][entity] = component
+  if not self.components[component.type] then
+    self.components[component.type] = {}
+  end
+  self.components[component.type][entity] = component
 end
 
 --------------------------------------------------------------------------------
@@ -52,11 +52,11 @@ end
 --
 -- @param entity THe entity to remove from the world
 function World:removeEntity(entity)
-   table.insert(self.freeEntities, entity)
+  table.insert(self.freeEntities, entity)
 
-   for type, tab in pairs(self.components) do
-      tab[entity] = nil
-   end
+  for type, tab in pairs(self.components) do
+    tab[entity] = nil
+  end
 end
 
 --------------------------------------------------------------------------------
@@ -68,7 +68,11 @@ end
 -- @return true if there is a component of type componentType associated to
 --         the entity, false otherwise
 function World:hasComponent(entity, componentType)
-   return self.components[componentType][entity] ~= nil
+  if self.components[componentType] then  
+    return self.components[componentType][entity] ~= nil
+  else
+    return False
+  end
 end
 
 --------------------------------------------------------------------------------
@@ -81,11 +85,11 @@ end
 --
 -- @return The components as multiple values
 function World:getEntityComponents(entity, ...)
-   local components = {}
-   for _, type in ipairs{...} do
-      table.insert(components, self.components[type][entity])
-   end
-   return unpack(components)
+  local components = {}
+  for _, type in ipairs{...} do
+    table.insert(components, self.components[type][entity])
+  end
+  return unpack(components)
 end
 
 --------------------------------------------------------------------------------
@@ -95,11 +99,11 @@ end
 --
 -- @return Iterator of entity, component
 function World:getEntitiesWithComponent(type)
-   return pairs(self.components[type])
+  return pairs(self.components[type])
 end
 
 MetaWorld.__index = World
 
 return {
-   World = World
+  World = World
 }
