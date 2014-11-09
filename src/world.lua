@@ -18,12 +18,16 @@ local MetaTile = {}
 --
 -- @param options.type     The type of the tile
 -- @param options.altitude The altitude of the tile
+-- @param options.link     [optional] The place the user is teleported to when
+--                         walking on the tile.
+--                         The form is { mapName, x, y }
 --
 -- @return A new tile
 function Tile:new(options)
   local tile = {
     type = options.type,
     altitude = options.altitude,
+    link = options.link
   }
   setmetatable(tile, MetaTile)
   return tile
@@ -34,8 +38,23 @@ end
 --
 -- @return A string
 function Tile:serialize()
-  return "Tile:new{ type = '" .. self.type ..
-    "', altitude = " .. self.altitude .. "}"
+  attributes = {
+    "type = '"  .. self.type .. "'",
+    "altitude = " .. self.altitude
+  }
+
+  if self.link then
+    table.insert(
+      attributes,
+      "link = { " ..
+        "'" .. self.link[1] .. "', " ..
+        self.link[2] .. ", " ..
+        self.link[3] ..
+        " }"
+    )
+  end
+
+  return "Tile:new{ " .. table.concat(attributes, ", ") ..  " }"
 end
 
 MetaTile.__index = Tile
