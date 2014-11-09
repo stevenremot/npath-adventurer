@@ -22,12 +22,28 @@ function love.load()
       entity,
       graphics.Renderable:new(
          function (canvas)
-            canvas:translate(100, 100):drawText(
-               ast:toString(),
-               { r = 255, g = 255; b = 255 },
-               10, 10,
-               600
-            )
+            canvas:translate(100, 100):
+               drawText{
+                  text = ast:toString(),
+                  color = { r = 255, g = 255; b = 255 },
+                  x = 10, y = 10,
+                  width = 600
+               }
+         end
+      )
+   )
+
+   local smileImage = love.graphics.newImage('assets/images/smile.png')
+   local smile = world:createEntity()
+   world:addComponent(
+      smile,
+      graphics.Renderable:new(
+         function (canvas)
+            canvas:drawImage{
+               image = smileImage,
+               x = 10,
+               y = 10
+            }
          end
       )
    )
