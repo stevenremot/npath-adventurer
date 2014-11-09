@@ -211,7 +211,7 @@ local function tilerender(world, canvas, viewport)
       if world:hasComponent(entity, geometry.TileDimensionable.TYPE) then
         tileDimensionable = world:getEntityComponents(
           entity,
-          geometry.TileDimensionable.type
+          geometry.TileDimensionable.TYPE
         )
         w, h = tileDimensionable.w, tileDimensionable.h
       end

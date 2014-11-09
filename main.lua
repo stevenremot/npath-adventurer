@@ -3,6 +3,7 @@ local parser   = require('src.parser.lua')
 local ecs      = require('src.ecs')
 local graphics = require('src.graphics')
 local geometry = require('src.geometry')
+local assets   = require('src.assets')
 
 local world = ecs.World:new()
 local canvas = graphics.Canvas:new{
@@ -55,30 +56,13 @@ function love.load()
     geometry.Positionable:new(50, 50)
   )
 
-  local grassImage = love.graphics.newImage('assets/images/grass.png')
-  local grass = world:createEntity()
-  world:addComponent(
-    grass,
-    graphics.Renderable:new(
-      function(canvas)
-        canvas:drawImage{
-          image = grassImage,
-          x = 0,
-          y = 0
-        }
-      end
-    )
-  )
-  world:addComponent(
-    grass,
-    geometry.TilePositionable:new(3, 3, 0, 0)
-  )
+  local grass = assets.createTileEntity(world, 'assets/images/grass.png', 3, 3)
 
 end
 
 function love.draw()
   graphics.render(world, canvas)
-  --graphics.tilerender(world, canvas, viewport)
+  graphics.tilerender(world, canvas, viewport)
 end
 
 

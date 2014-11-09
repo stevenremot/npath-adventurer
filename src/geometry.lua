@@ -61,12 +61,12 @@ local TileDimensionable = {
 }
 
 --------------------------------------------------------------------------------
---- Create a new positionable component
+--- Create a new dimensionable component
 --
 -- @param w
 -- @param h
 --
--- @return A new positionable component
+-- @return A new dimensionable component
 function TileDimensionable:new(w, h)
   local component = {
     type = self.TYPE,
