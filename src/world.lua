@@ -196,18 +196,6 @@ local function load(file)
   end
 end
 
-local world = World:new("bobby"):
-  setMap("overworld", Map:new{
-           tiles = {
-             {Tile:new{ type = "plain", altitude = 0 },
-              Tile:new{ type = "plain", altitude = 1 }},
-             {Tile:new{ type = "plain", altitude = 1 },
-              Tile:new{ type = "plain", altitude = 1 }},
-             {Tile:new{ type = "plain", altitude = 0 },
-              Tile:new{ type = "plain", altitude = 0 }}
-           }
-  })
-
 return {
   Tile = Tile,
   Map = Map,
