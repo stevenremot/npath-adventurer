@@ -16,7 +16,7 @@ local canvas = graphics.Canvas:new{
     height = 600
   }
 }
-local viewport = graphics.Viewport:new(2, 2, 20, 15)
+local viewport = graphics.Viewport:new(0, 0, 20, 15)
 
 function love.load()
   local ast = parser.parseDir('src/')
@@ -56,13 +56,20 @@ function love.load()
     geometry.Positionable:new(50, 50)
   )
 
-  local grass = assets.createTileEntity(world, 'assets/images/grass.png', 3, 3)
+  for i = 0, 39 do
+    for j = 0, 39 do
+      if ((i+j) % 2 == 0) then
+        assets.createTileEntity(world, 'assets/images/grass.png', i, j)
+      else 
+        assets.createTileEntity(world, 'assets/images/rock.png', i, j) end
+    end
+  end
 
 end
 
 function love.draw()
-  graphics.render(world, canvas)
   graphics.tilerender(world, canvas, viewport)
+  graphics.render(world, canvas)
 end
 
 

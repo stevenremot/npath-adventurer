@@ -7,6 +7,9 @@ local geometry = require('src.geometry')
 local graphics = require('src.graphics')
 
 --------------------------------------------------------------------------------
+local loadedAssets = {}
+
+--------------------------------------------------------------------------------
 --- Create a renderable, tilepositionable and tiledimensionable entity
 --- from an image file
 local function createTileEntity(world, imageDir, x, y, z, layer)
@@ -21,7 +24,12 @@ local function createTileEntity(world, imageDir, x, y, z, layer)
     geometry.TilePositionable:new(x, y, z, layer)
   ) 
 
-  local image = love.graphics.newImage(imageDir)
+  local image = loadedAssets[imageDir]
+  if not image then
+    image = love.graphics.newImage(imageDir)
+    loadedAssets[imageDir] = image  
+  end
+
   local w, h = image:getDimensions()
   w = w / geometry.TileSize; h = h / geometry.TileSize;
   world:addComponent(
@@ -47,5 +55,5 @@ local function createTileEntity(world, imageDir, x, y, z, layer)
 end
 
 return {
-    createTileEntity = createTileEntity
-  }
+  createTileEntity = createTileEntity
+}
