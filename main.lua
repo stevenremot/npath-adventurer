@@ -2,6 +2,7 @@ require('luarocks.loader')
 local parser   = require('src.parser.lua')
 local ecs      = require('src.ecs')
 local graphics = require('src.graphics')
+local geometry = require('src.geometry')
 
 local world = ecs.World:new()
 local canvas = graphics.Canvas:new{
@@ -41,14 +42,24 @@ function love.load()
          function (canvas)
             canvas:drawImage{
                image = smileImage,
-               x = 10,
-               y = 10
+               x = 0,
+               y = 0
             }
          end
       )
+   )
+   world:addComponent(
+      smile,
+      geometry.Positionable:new(50, 50)
    )
 end
 
 function love.draw()
    graphics.render(world, canvas)
+end
+
+function love.update(dt)
+   for _, position in world:getEntitiesWithComponent(geometry.Positionable.TYPE) do
+      position.x = position.x + dt * 10
+   end
 end

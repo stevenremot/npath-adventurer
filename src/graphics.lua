@@ -1,6 +1,7 @@
 -- graphics.lua
 --
 -- Abstraction layer on top of love
+local geometry = require("src.geometry")
 
 --------------------------------------------------------------------------------
 --- A canvas is an object that handles all drawing operations
@@ -133,8 +134,16 @@ end
 -- @param world  ECS world
 -- @param canvas Canvas to draw one
 local function render(world, canvas)
-   for _, renderable in world:getEntitiesWithComponent(Renderable.TYPE) do
-      renderable.draw(canvas)
+   for entity, renderable in world:getEntitiesWithComponent(Renderable.TYPE) do
+      if world:hasComponent(entity, geometry.Positionable.TYPE) then
+         positionable = world:getEntityComponents(
+            entity,
+            geometry.Positionable.TYPE
+         )
+         renderable.draw(canvas:translate(positionable.x, positionable.y))
+      else
+         renderable.draw(canvas)
+      end
    end
 end
 

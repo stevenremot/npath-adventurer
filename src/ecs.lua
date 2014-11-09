@@ -68,7 +68,7 @@ end
 -- @return true if there is a component of type componentType associated to
 --         the entity, false otherwise
 function World:hasComponent(entity, componentType)
-   return self.components[componentType][entty] ~= nil
+   return self.components[componentType][entity] ~= nil
 end
 
 --------------------------------------------------------------------------------
@@ -79,13 +79,13 @@ end
 -- @param entity An entity created with createEntity
 -- @param ...    The component types to retrieve
 --
--- @return A table indexing asked components by their types
+-- @return The components as multiple values
 function World:getEntityComponents(entity, ...)
    local components = {}
    for _, type in ipairs{...} do
-      components[type] = self.components[type][entity]
+      table.insert(components, self.components[type][entity])
    end
-   return components
+   return unpack(components)
 end
 
 --------------------------------------------------------------------------------
