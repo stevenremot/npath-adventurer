@@ -8,7 +8,9 @@ local Tile = {
   TYPE = {
     PLAIN = "plain",
     VILLAGE = "village",
-    DUNGEON = "dungeon"
+    DUNGEON = "dungeon",
+    FOREST = "forest",
+    FACTORY = "factory"
   }
 }
 local MetaTile = {}

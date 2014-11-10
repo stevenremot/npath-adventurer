@@ -6,6 +6,7 @@ local geometry = require('src.geometry')
 local assets   = require('src.assets')
 local segmentation = require('src.generation.segmentation')
 local overworld = require('src.generation.overworld')
+local random = require('src.generation.random')
 
 local world = ecs.World:new()
 local canvas = graphics.Canvas:new{
@@ -22,16 +23,14 @@ local viewport = graphics.Viewport:new(0, 0, 20, 15)
 viewportSpeed = { x = 0, y = 0, value = 5 }
 
 function love.load()
-  -- tilemask test
-  local tilemask = overworld.TileMask:new({1,1},{1,2})
-  tilemask:remove({1,1})
-  tilemask:add({2,2},{2,3})
-  print(tilemask:contains({1,2},{2,3}))
-  print(love.math.random(1, 100))
+  
+  random.test()
   
   local ast = parser.parseDir('src/')
   seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
   print(#seg.overworld, #seg.dungeons, seg.overworld[4]:getComplexity())
+  
+  overworld.generateOverworld(seg.overworld)
 
   local entity = world:createEntity()
   world:addComponent(

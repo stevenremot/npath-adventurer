@@ -2,6 +2,7 @@
 --
 -- Creation of the overworld biomes based on the segmented codespaces
 local world = require('src.world')
+local random = require('src.generation.random')
 
 --------------------------------------------------------------------------------
 --- The overworld is a rectangle with the given size (in tile units)
@@ -10,6 +11,12 @@ local OverworldSize = {
   h = 300 
 }
 
+local BiomeTypes = {
+  { world.Tile.TYPE.PLAIN, 5},
+  { world.Tile.TYPE.VILLAGE, 2},
+  { world.Tile.TYPE.FOREST, 3},
+  { world.Tile.TYPE.FACTORY, 1} 
+}
 --------------------------------------------------------------------------------
 --- A tilemask is a table indexed with the tiles occupied by an object or
 --- an environment
@@ -117,6 +124,12 @@ function Biome:new(codeSpace, center, type)
   return biome
 end
 
+function Biome:distanceTo(x, y)
+  local distance = ((x - self.center.x)^2 + (y - self.center.y)^2)
+  distance = distance / self.codeSpace:getComplexity()
+  return distance
+end
+
 MetaBiome.__index = Biome
 
 local function findNearestBiome(i, j, biomes)
@@ -145,42 +158,53 @@ local function initBiomes(codespaces, biomes, rng)
 
   -- create biome centers
   for _, b in ipairs(codespaces) do
-    local squareIndex = rng:random(1, #permutations)
-    local i, j = squareIndex[1], squareIndex[2]
+    local square, squareIndex = rng:randomListElement(permutations)
+    local i, j = square[1], square[2]
     table.remove(permutations, squareIndex)
 
     local _x = i * biomeSquareDims.w - biomeSquareDims.w / 2
     local _y = j * biomeSquareDims.h - biomeSquareDims.h / 2
-    local x = rng:random(_x - biomeSquareDims.w/4, _x + biomeSquareDims.w/4)
-    local y = rng:random(_y - biomeSquareDims.h/4, _y + biomeSquareDims.h/4)
+    local x = rng:randomf(_x - biomeSquareDims.w/4, _x + biomeSquareDims.w/4)
+    local y = rng:randomf(_y - biomeSquareDims.h/4, _y + biomeSquareDims.h/4)
 
-    table.insert(biomes, Biome:new(b, {x = x, y = y}, world.Tile.TYPE.PLAIN))
+    table.insert(biomes, Biome:new(
+        b,
+        {x = x, y = y},
+        rng:randomDensityListElement(BiomeTypes)
+      )
+    )
   end
 
 end
 
-local function generateOverworld(codespaces, world)
+--------------------------------------------------------------------------------
+--- Generate the overworld map
+-- @param codespace list
+-- @return "overworld" world.Map 
+local function generateOverworld(codespaces)
   -- fixed seed for testing purposes
-  local rng = love.math.newRandomGenerator(0)
+  local rng = random.Rng:new(1)
   local biomes = {}
 
   initBiomes(codespaces, biomes, rng)
-  
-  tiles = {}
+
+  local tiles = {}
   for i = 1, OverworldSize.w do
     tiles[i] = {}
     for j = 1, OverworldSize.h do
       biome = findNearestBiome(i, j, biomes)
       tiles[i][j] = world.Tile:new({type = biome.type, altitude = biome.z})
     end
-  end     
+  end 
   
-
+  local map = world.Map:new({tiles = tiles})
+  return map
 end
 
 
 return {
   Biome = Biome,
   OverworldSize = OverworldSize,
-  TileMask = TileMask
+  TileMask = TileMask,
+  generateOverworld = generateOverworld
 }
