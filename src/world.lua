@@ -88,9 +88,9 @@ end
 function Map:serializeTiles()
   local lines = {}
 
-  for _, line in pairs(self.tiles) do
+  for _, line in ipairs(self.tiles) do
     local tiles = {}
-    for _, tile in pairs(line) do
+    for _, tile in ipairs(line) do
       table.insert(tiles, tile:serialize())
     end
     table.insert(lines, "{ " .. table.concat(tiles, ", ") .. " }")
