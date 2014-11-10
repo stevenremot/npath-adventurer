@@ -84,6 +84,8 @@ end
 -- @param options.y
 -- @param options.width Optional, the width of the box containing the text.
 --                      The text will be wrapped to fit in it.
+--
+-- @return self
 function Canvas:drawText(options)
   local color = options.color
   love.graphics.setColor(color.r, color.g, color.b, color.a)
@@ -95,6 +97,8 @@ function Canvas:drawText(options)
   else
     love.graphics.print(options.text, x, y)
   end
+
+  return self
 end
 
 --------------------------------------------------------------------------------
@@ -103,9 +107,47 @@ end
 -- @param options.image
 -- @param options.x
 -- @param options.y
+--
+-- @return self
 function Canvas:drawImage(options)
   local x, y = self:canvasToScreen(options.x, options.y)
   love.graphics.draw(options.image, x, y, 0, self.ratio.x, self.ratio.y)
+  return self
+end
+
+--------------------------------------------------------------------------------
+--- Draw a rectangle on the screen
+--
+-- @param options.x
+-- @param options.y
+-- @param options.width
+-- @param options.height
+-- @param options.fillColor [optional]
+-- @param options.strokeColor [optional]
+--
+-- @return self
+function Canvas:drawRectangle(options)
+  if options.fillColor then
+    local color = options.fillColor
+    love.graphics.setColor(color.r, color.g, color.b)
+    love.graphics.rectangle(
+      "fill",
+      options.x, options.y,
+      options.width, options.height
+    )
+  end
+
+  if options.strokeColor then
+    local color = options.strokeColor
+    love.graphics.setColor(color.r, color.g, color.b)
+    love.graphics.rectangle(
+      "line",
+      options.x, options.y,
+      options.width, options.height
+    )
+  end
+
+  return self
 end
 
 MetaCanvas.__index = Canvas
