@@ -53,13 +53,17 @@ local noop = function () end
 --------------------------------------------------------------------------------
 --- Create a new GUI element
 --
--- @param options.draw      A function that takes a wrapper and a canvas as
---                          parameter and that draws on it
--- @param options.onClick   [optional] Function run when there have been a mouse
---                          click on the element. Takes a wrapper as argument
--- @param options.onKeyDown [optional] Function run where there have been a key
---                          pressed when the component is focused. Takes
---                          a wrapper and a key code as input
+-- @param options.draw       A function that takes a wrapper and a canvas as
+--                           parameter and that draws on it
+-- @param options.onClick    [optional] Function run when there have been a mouse
+--                           click on the element. Takes a wrapper as argument
+-- @param options.onKeyDown  [optional] Function run where there have been a key
+--                           pressed when the component is focused. Takes
+--                           a wrapper and a key code as input
+-- @param options.onMouseIn  [optional] Function to run when the mouse cursor is on
+--                           the element
+-- @param options.onMouseOut [optional] Function to run when the mouse leaves the
+--                           element
 --
 -- @return A new GUI element
 function Element:new(options)
@@ -68,6 +72,8 @@ function Element:new(options)
     draw = options.draw,
     onClick = options.onClick or noop,
     onKeyDown = options.onKeyDown or noop,
+    onMouseIn = options.onMouseIn or noop,
+    onMouseOut = options.onMouseOut or noop
   }
   return element
 end
@@ -86,7 +92,8 @@ local MetaSystem = {}
 function System:new(world)
   local system = {
     world = world,
-    focusedEntity = nil
+    focusedEntity = nil,
+    hoveredEntity = nil
   }
   setmetatable(system, MetaSystem)
   return system
@@ -107,13 +114,13 @@ function System:render(canvas)
 end
 
 --------------------------------------------------------------------------------
---- React on mouse click
+--- Return the entity the contains x, y
 --
--- @param x Mouse X
--- @param y Mouse Y
+-- @param x
+-- @param y
 --
--- @return true if it reacted, false otherwise
-function System:onClick(x, y)
+-- @return An entity and its gui element or nil
+function System:getEntityAtPoint(x, y)
   for entity, guiElement in self.world:getEntitiesWithComponent(Element.TYPE) do
     local pos, size = self.world:getEntityComponents(
       entity,
@@ -123,13 +130,51 @@ function System:onClick(x, y)
 
     local dx, dy = x - pos.x, y - pos.y
 
-    self.focusedEntity = nil
     if 0 <= dx and dx <= size.width and 0 <= dy and dy <= size.height then
-      guiElement.onClick(Wrapper:new(self, entity))
-      return true
+      return entity, guiElement
     end
-    return false
   end
+  return false
+end
+
+--------------------------------------------------------------------------------
+--- React on mouse click
+--
+-- @param x Mouse X
+-- @param y Mouse Y
+--
+-- @return true if it reacted, false otherwise
+function System:onClick(x, y)
+  local hoveredEntity, guiElement = self:getEntityAtPoint(x, y)
+  if hoveredEntity then
+    guiElement.onClick(Wrapper:new(self, hoveredEntity))
+    return true
+  end
+  return false
+end
+
+--------------------------------------------------------------------------------
+--- React on a mouse move
+--
+-- @param x
+-- @param y
+function System:onMouseMove(x, y)
+  local hoveredEntity, guiElement = self:getEntityAtPoint(x, y)
+  if hoveredEntity and hoveredEntity ~= self.hoveredEntity then
+    guiElement.onMouseIn(Wrapper:new(hoveredEntity))
+  end
+
+  if hoveredEntity ~= self.hoveredEntity then
+    local oldGuiElement = self.world:getEntityComponents(
+      self.hoveredEntity,
+      Element.TYPE
+    )
+    if oldGuiElement then
+      oldGuiElement.onMouseOut(Wrapper:new(self.hoveredEntity))
+    end
+  end
+
+  self.hoveredEntity = hoveredEntity
 end
 
 --------------------------------------------------------------------------------
@@ -154,7 +199,112 @@ end
 
 MetaSystem.__index = System
 
+--------------------------------------------------------------------------------
+--- Draw the rectangle of a button
+--
+-- @param canvas
+-- @param width
+-- @param height
+-- @param strokeColor
+-- @param fillColor
+local function drawButtonRectangle(canvas, width, height, strokeColor, fillColor)
+  canvas:drawRectangle{
+    x = 0,
+    y = 0,
+    width = width,
+    height = height,
+    strokeColor = strokeColor,
+    fillColor = fillColor
+  }
+end
+
+--------------------------------------------------------------------------------
+--- Draw the text of a button
+local function drawButtonText(canvas, width, height, text, color, size)
+  canvas:drawText{
+    x = 5,
+    y = (height - size) / 2,
+    size = size,
+    text = text,
+    color = color,
+    width = width - 10,
+    anchor = "center"
+  }
+end
+
+--------------------------------------------------------------------------------
+--- Create a button
+--
+-- @param world          The world in which register the button
+-- @param options.action Function to run when button is activated
+-- @param options.text
+-- @param options.x
+-- @param options.y
+-- @param options.size
+-- @param options.width
+-- @param options.height
+-- @param options.fillColor
+-- @param options.strokeColor
+--
+-- @return The entity that represents the button
+local function createButton(world, options)
+  local button = world:createEntity()
+  local highlight = false
+  local width, height = options.width, options.height
+  local size = options.size or 20
+
+  local highlightColor = {
+    r = math.min(options.fillColor.r * 1.5, 255),
+    g = math.min(options.fillColor.g * 1.5, 255),
+    b = math.min(options.fillColor.b * 1.5, 255)
+  }
+
+  world:addComponent(button, geometry.Positionable:new(options.x, options.y))
+  world:addComponent(
+    button,
+    geometry.Dimensionable:new(width, height)
+  )
+  world:addComponent(
+    button,
+    Element:new{
+      draw = function (gui, canvas)
+        if highlight then
+          drawButtonRectangle(
+            canvas,
+            width, height,
+            options.strokeColor, highlightColor
+          )
+        else
+          drawButtonRectangle(
+            canvas,
+            width, height,
+            options.strokeColor, options.fillColor
+          )
+        end
+        drawButtonText(
+          canvas, width, height,
+          options.text,
+          options.strokeColor,
+          size
+        )
+      end,
+      onMouseIn = function ()
+        highlight = true
+      end,
+      onMouseOut = function ()
+        highlight = false
+      end,
+      onClick = function ()
+        options.action()
+      end
+    }
+  )
+
+  return button
+end
+
 return {
   Element = Element,
-  System = System
+  System = System,
+  createButton = createButton
 }

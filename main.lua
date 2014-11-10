@@ -21,6 +21,8 @@ local viewport = graphics.Viewport:new(0, 0, 20, 15)
 local guiSystem = gui.System:new(world)
 
 function love.load()
+  canvas:setFontSize(20)
+
   local ast = parser.parseDir('src/')
 
   local entity = world:createEntity()
@@ -33,7 +35,8 @@ function love.load()
           text = ast:toString(),
           color = { r = 255, g = 255, b = 255 },
           x = 10, y = 10,
-          width = 600
+          width = 600,
+          anchor = "justify"
         }
       end
     )
@@ -67,43 +70,16 @@ function love.load()
     end
   end
 
-  local text = ""
 
-  local textEntity = world:createEntity()
-  world:addComponent(textEntity, geometry.Positionable:new(10, 10))
-  world:addComponent(textEntity, geometry.Dimensionable:new(130, 30))
-  world:addComponent(
-    textEntity,
-    gui.Element:new{
-      draw = function (gui, canvas)
-        local backColor = { r = 64, g = 64, b = 64 }
-
-        if gui:hasFocus() then
-          backColor = { r = 128, g = 128, b = 128 }
-        end
-
-        canvas:
-          drawRectangle{
-            x = 0, y = 0,
-            width = 120, height = 20,
-            fillColor = backColor,
-            strokeColor = { r = 255, g = 255, b = 255 }
-          }:
-          drawText{
-            text = text,
-            color = { r = 255, g = 255, b = 255 },
-            x = -2, y = -5,
-            width = 90
-          }
-      end,
-      onClick = function (gui) gui:focus() end,
-      onKeyDown = function (wrapper, key)
-        if key == "backspace" then
-          text = text:sub(1, -2)
-        elseif #key == 1 then
-          text = text .. key
-        end
-      end
+  gui.createButton(
+    world,
+    {
+      action = function () print("Clicked") end,
+      text = "Click here",
+      x = 20, y = 20,
+      width = 200, height = 50,
+      fillColor = { r = 64, g = 0, b = 0 },
+      strokeColor = { r = 255, g = 255, b = 255 }
     }
   )
 
@@ -121,4 +97,15 @@ end
 
 function love.mousepressed(x, y)
   guiSystem:onClick(x, y)
+end
+
+local mouseX, mouseY = 0, 0
+
+function love.update()
+  local x, y = love.mouse.getPosition()
+
+  if x ~= mouseX or y ~= mouseY then
+    guiSystem:onMouseMove(x, y)
+    mouseX, mouseY = x, y
+  end
 end
