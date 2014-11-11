@@ -62,7 +62,7 @@ end
 -- @param list Table of {element, density}
 -- @return random list element
 function Rng:randomDensityListElement(list)
-  local dmax = 0  
+  local dmax = 0
   for _, e in ipairs(list) do
     dmax = dmax + e[2]
   end
@@ -78,7 +78,7 @@ function Rng:randomDensityListElement(list)
     end
   end
 
-  return element   
+  return element
 end
 
 MetaRng.__index = Rng

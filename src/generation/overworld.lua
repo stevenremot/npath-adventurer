@@ -143,7 +143,7 @@ end
 
 local function initBiomes(codespaces, biomes, rng)
 
-  local biomeSquareNumber = 1 + math.sqrt(#codespaces)-math.sqrt(#codespaces)%1
+  local biomeSquareNumber = 1 + (math.sqrt(#codespaces)-math.sqrt(#codespaces)%1)
   local biomeSquareDims = {
     w = OverworldSize.w / biomeSquareNumber,
     h = OverworldSize.h / biomeSquareNumber

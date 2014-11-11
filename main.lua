@@ -7,6 +7,7 @@ local assets   = require('src.assets')
 local segmentation = require('src.generation.segmentation')
 local overworld = require('src.generation.overworld')
 local gui      = require('src.gui')
+local character = require('src.game.character')
 local sprite = require('src.sprite')
 
 local world = ecs.World:new()
@@ -25,8 +26,6 @@ viewportSpeed = { x = 0, y = 0, value = 5 }
 
 local guiSystem = gui.System:new(world)
 local tileRenderSystem = graphics.tile.TileRenderSystem:new(world)
-
-local gummySprite = nil
 
 function love.load()
   canvas:setFontSize(20)
@@ -48,35 +47,8 @@ function love.load()
       strokeColor = { r = 255, g = 255, b = 255 }
     }
   )
-  gummySprite = assets.createSprite('gummy')
-  gummySprite.animating = true
 
-  local gummy = world:createEntity()
-  local pos = geometry.TilePositionable:new(10, 10, 0, 1)
-  world:addComponent(
-    gummy,
-    pos
-  )
-  world:addComponent(
-    gummy,
-    geometry.TileDimensionable:new(40, 80)
-  )
-  world:addComponent(
-    gummy,
-    graphics.base.Renderable:new(function (canvas)
-        canvas:drawImage{
-          image = gummySprite,
-          x = 0,
-          y = 0
-        }
-    end)
-  )
-  world:addComponent(
-    gummy,
-    sprite.SpriteComponent:new(gummySprite)
-  )
-  tileRenderSystem.index:register(gummy, pos)
-
+  character.createCharacter(world, "gummy", 10, 10, 0, tileRenderSystem.index)
 end
 
 function love.draw()
@@ -94,16 +66,12 @@ function love.keypressed(key)
   local v = viewportSpeed.value
   if key == "down" then
     viewportSpeed.y = math.min(v, viewportSpeed.y + v)
-    gummySprite:setAnimation(1)
   elseif key == "up" then
     viewportSpeed.y = math.max(-v, viewportSpeed.y - v)
-    gummySprite:setAnimation(4)
   elseif key == "left" then
     viewportSpeed.x = math.max(-v, viewportSpeed.x - v)
-    gummySprite:setAnimation(3)
   elseif key == "right" then
     viewportSpeed.x = math.min(v, viewportSpeed.x + v)
-    gummySprite:setAnimation(2)
   end
   guiSystem:onKeyDown(key)
 end
