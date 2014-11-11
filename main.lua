@@ -1,4 +1,3 @@
-require('luarocks.loader')
 local parser   = require('src.parser.lua')
 local ecs      = require('src.ecs')
 local graphics = require('src.graphics')
