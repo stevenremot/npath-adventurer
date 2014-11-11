@@ -68,7 +68,7 @@ end
 -- @return true if there is a component of type componentType associated to
 --         the entity, false otherwise
 function World:hasComponent(entity, componentType)
-  if self.components[componentType] then  
+  if self.components[componentType] then
     return self.components[componentType][entity] ~= nil
   else
     return False
@@ -87,7 +87,7 @@ end
 function World:getEntityComponents(entity, ...)
   local components = {}
   for _, type in ipairs{...} do
-    table.insert(components, self.components[type][entity])
+    components[#components + 1] = self.components[type][entity]
   end
   return unpack(components)
 end
