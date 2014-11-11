@@ -26,16 +26,11 @@ viewportSpeed = { x = 0, y = 0, value = 5 }
 local guiSystem = gui.System:new(world)
 local tileRenderSystem = graphics.tile.TileRenderSystem:new(world)
 
-local gummySprite = sprite.Sprite:new(
-  assets.loadSprite(
-    'assets/images/gummy.png',
-    40, 80,
-    4, 4
-  )
-)
+local gummySprite = nil
 
 function love.load()
   canvas:setFontSize(20)
+  assets.loadSprites()
 
   local ast = parser.parseDir('src/')
   seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
@@ -53,6 +48,7 @@ function love.load()
       strokeColor = { r = 255, g = 255, b = 255 }
     }
   )
+  gummySprite = assets.createSprite('gummy')
 
   local gummy = world:createEntity()
   local pos = geometry.TilePositionable:new(10, 10, 0, 1)

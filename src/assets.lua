@@ -71,19 +71,36 @@ end
 
 --------------------------------------------------------------------------------
 --- Create a new sprite resource
-local function loadSprite(imageDir, width, height, animNumbers, stepNumbers)
-  if loadedAssets.sprites[imageDir] then
-    return loadedAssets.sprites[imageDir]
-  else
-    return  sprite.SpriteResource:new(
-      loadImage(imageDir),
-      width, height,
-      animNumbers, stepNumbers
+local function loadSprite(name, imageDir, width, height, animNumber, stepNumber)
+  loadedAssets.sprites[name] = sprite.SpriteResource:new(
+    loadImage(imageDir),
+    width, height,
+    animNumber, stepNumber
+  )
+end
+
+--------------------------------------------------------------------------------
+--- Load all sprites registered in assets
+local function loadSprites()
+  local sprites = require('assets.sprites')
+  for name, spec in pairs(sprites) do
+    loadSprite(
+      name,
+      spec.image,
+      spec.width, spec.height,
+      spec.animNumber, spec.stepNumber
     )
   end
 end
 
+--------------------------------------------------------------------------------
+--- Create a new sprite based on a registered resource
+local function createSprite(name)
+  return sprite.Sprite:new(loadedAssets.sprites[name])
+end
+
 return {
   createTileEntity = createTileEntity,
-  loadSprite = loadSprite
+  loadSprites = loadSprites,
+  createSprite = createSprite
 }
