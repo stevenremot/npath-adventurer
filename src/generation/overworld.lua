@@ -3,6 +3,7 @@
 -- Creation of the overworld biomes based on the segmented codespaces
 local world = require('src.world')
 local random = require('src.generation.random')
+local models = require('src.generation.models')
 
 --------------------------------------------------------------------------------
 --- The overworld is a rectangle with the given size (in tile units)
@@ -11,127 +12,28 @@ local OverworldSize = {
   h = 200
 }
 
-local BiomeTypes = {
-  { world.Tile.TYPE.PLAIN, 5},
-  { world.Tile.TYPE.VILLAGE, 2},
-  { world.Tile.TYPE.FOREST, 3},
-  { world.Tile.TYPE.FACTORY, 1}
+--------------------------------------------------------------------------------
+--- The biome types and their weights of apparition
+local BiomeDistribution = {
+  { world.Tile.TYPE.PLAIN, 5 },
+  { world.Tile.TYPE.VILLAGE, 2 },
+  { world.Tile.TYPE.FOREST, 3 },
+  { world.Tile.TYPE.FACTORY, 1 }
 }
---------------------------------------------------------------------------------
---- A tilemask is a table indexed with the tiles occupied by an object or
---- an environment
---- It is modelised as a sparse matrix
-local TileMask = {}
-local MetaTileMask = {}
 
 --------------------------------------------------------------------------------
---- Create a new tilemask
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
-function TileMask:new(...)
-  local tilemask = {}
-
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-    if not tilemask[i] then
-      tilemask[i] = {}
-    end
-    tilemask[i][j] = true
-  end
-
-  setmetatable(tilemask, MetaTileMask)
-  return tilemask
-end
+--- The available altitudes and their weights of apparition
+local AltitudeDistribution = {
+  { 0, 5 },
+  { 1, 2 },
+  { 2, 1 }
+}
 
 --------------------------------------------------------------------------------
---- Add tile index to a tilemask
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
-function TileMask:add(...)
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-    if not self[i] then
-      self[i] = {}
-    end
-    self[i][j] = true
-  end
-end
-
-
---------------------------------------------------------------------------------
---- Remove tile index to a tilemask
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
-function TileMask:remove(...)
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-    if not self[i] then
-      break
-    else
-      self[i][j] = nil
-      if next(self[i]) == nil then
-        self[i] = nil
-      end
-    end
-  end
-end
-
-
---------------------------------------------------------------------------------
---- Check if the tilemask contains one or several tiles
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
--- @return A boolean
-function TileMask:contains(...)
-  local b = true
-
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-
-    if not self[i] then
-      b = false
-      break
-    else
-      if not self[i][j] then
-        b = false
-        break
-      end
-    end
-
-  end
-
-  return b
-end
-
-MetaTileMask.__index = TileMask
-
---------------------------------------------------------------------------------
---- A biome is a part of the overworld generation
-local Biome = {}
-local MetaBiome = {}
-
---------------------------------------------------------------------------------
---- Create a new biome
---
--- @param codeSpace CodeSpace associated to this biome
--- @param center { x = x, y = y } Attraction point of the biome
--- @param type of biome
-function Biome:new(codeSpace, center, type)
-  local biome = {
-    codeSpace = codeSpace,
-    center = center,
-    type = type,
-    z = 0
-  }
-
-  setmetatable(biome, MetaBiome)
-  return biome
-end
-
-function Biome:distanceTo(x, y)
-  local distance = ((x - self.center.x)^2 + (y - self.center.y)^2)
-  distance = distance / self.codeSpace:getComplexity()
-  return distance
-end
-
-MetaBiome.__index = Biome
-
+--- Find the nearest biome of the {i,j} tile
+-- @param i, j Tile coordinates
+-- @param biomes List of the overworld biomes
+-- @return Nearest biome
 local function findNearestBiome(i, j, biomes)
   local nearestBiomes = {}
   for n, biome in ipairs(biomes) do
@@ -141,6 +43,8 @@ local function findNearestBiome(i, j, biomes)
   return biomes[nearestBiomes[1][1]]
 end
 
+--------------------------------------------------------------------------------
+--- Create the models.Biome objects based on the codespaces
 local function initBiomes(codespaces, biomes, rng)
 
   local biomeSquareNumber = 1 + math.sqrt(#codespaces)-math.sqrt(#codespaces)%1
@@ -167,10 +71,11 @@ local function initBiomes(codespaces, biomes, rng)
     local x = rng:randomf(_x - biomeSquareDims.w/4, _x + biomeSquareDims.w/4)
     local y = rng:randomf(_y - biomeSquareDims.h/4, _y + biomeSquareDims.h/4)
 
-    table.insert(biomes, Biome:new(
+    table.insert(biomes, models.Biome:new(
         b,
         {x = x, y = y},
-        rng:randomDensityListElement(BiomeTypes)
+        rng:randomDensityListElement(BiomeDistribution),
+        rng:randomDensityListElement(AltitudeDistribution)
       )
     )
   end
@@ -203,8 +108,6 @@ end
 
 
 return {
-  Biome = Biome,
   OverworldSize = OverworldSize,
-  TileMask = TileMask,
   generateOverworld = generateOverworld
 }
