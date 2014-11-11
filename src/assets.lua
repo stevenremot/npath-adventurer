@@ -4,10 +4,29 @@
 --------------------------------------------------------------------------------
 
 local geometry = require('src.geometry')
-local graphics = require('src.graphics')
+local graphics = require('src.graphics.base')
+local sprite   = require('src.sprite')
 
 --------------------------------------------------------------------------------
-local loadedAssets = {}
+local loadedAssets = {
+  images = {},
+  sprites = {}
+}
+
+--------------------------------------------------------------------------------
+--- Load an image from the file system
+--
+-- @param imageDir The path to the image
+--
+-- @return THe loaded image
+local function loadImage(imageDir)
+  local image = loadedAssets.images[imageDir]
+  if not image then
+    image = love.graphics.newImage(imageDir)
+    loadedAssets.images[imageDir] = image
+  end
+  return image
+end
 
 --------------------------------------------------------------------------------
 --- Create a renderable, tilepositionable and tiledimensionable entity
@@ -25,12 +44,7 @@ local function createTileEntity(world, tileIndex, imageDir, x, y, z, layer)
     pos
   )
   tileIndex:register(entity, pos)
-
-  local image = loadedAssets[imageDir]
-  if not image then
-    image = love.graphics.newImage(imageDir)
-    loadedAssets[imageDir] = image
-  end
+  local image = loadImage(imageDir)
 
   local w, h = image:getDimensions()
   w = w / geometry.TileSize; h = h / geometry.TileSize;
@@ -53,9 +67,23 @@ local function createTileEntity(world, tileIndex, imageDir, x, y, z, layer)
   )
 
   return entity
+end
 
+--------------------------------------------------------------------------------
+--- Create a new sprite resource
+local function loadSprite(imageDir, width, height, animNumbers, stepNumbers)
+  if loadedAssets.sprites[imageDir] then
+    return loadedAssets.sprites[imageDir]
+  else
+    return  sprite.SpriteResource:new(
+      loadImage(imageDir),
+      width, height,
+      animNumbers, stepNumbers
+    )
+  end
 end
 
 return {
-  createTileEntity = createTileEntity
+  createTileEntity = createTileEntity,
+  loadSprite = loadSprite
 }

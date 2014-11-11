@@ -47,16 +47,17 @@ end
 --- Create the models.Biome objects based on the codespaces
 local function initBiomes(codespaces, biomes, rng)
 
-  local biomeSquareNumber = 1 + math.sqrt(#codespaces)-math.sqrt(#codespaces)%1
+  local biomeSquareNumber = math.sqrt(#codespaces) - math.sqrt(#codespaces)%1
+  biomeSquareNumber = biomeSquareNumber + 1
   local biomeSquareDims = {
     w = OverworldSize.w / biomeSquareNumber,
     h = OverworldSize.h / biomeSquareNumber
   }
-
+  
   local permutations = {}
   for i = 1, biomeSquareNumber do
     for j = 1, biomeSquareNumber do
-      table.insert(permutations, {i, j})
+      table.insert(permutations, {i,j})
     end
   end
 
