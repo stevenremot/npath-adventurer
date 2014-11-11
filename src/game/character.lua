@@ -5,6 +5,7 @@ local assets = require('src.assets')
 local geometry = require('src.geometry')
 local graphics = require('src.graphics.base')
 local sprite = require('src.graphics.sprite')
+local movement = require('src.movement')
 
 local CHARACTER_WIDTH, CHARACTER_HEIGHT = 40, 80
 
@@ -28,10 +29,12 @@ local function createCharacter(world, spriteName, x, y, z, tileIndex)
     end
   )
   local spriteComp = sprite.SpriteComponent:new(spriteObj)
+  local mov = movement.TileMovable:new()
 
   world:addComponent(character, pos)
   world:addComponent(character, dim)
   world:addComponent(character, render)
+  world:addComponent(character, mov)
   world:addComponent(character, spriteComp)
 
   tileIndex:register(character, pos)
@@ -46,26 +49,38 @@ local SPRITE_LAYERS = {
   DOWN = 1
 }
 
+local SPEED = 5
+
 --------------------------------------------------------------------------------
 --- Movement functions for a character
-local function moveLeft(sprite)
+local function moveLeft(sprite, mov)
   sprite.animating = true
   sprite:setAnimation(SPRITE_LAYERS.LEFT)
+  mov.x = -SPEED
+  mov.y = 0
 end
-local function moveRight(sprite)
+local function moveRight(sprite, mov)
   sprite.animating = true
   sprite:setAnimation(SPRITE_LAYERS.RIGHT)
+  mov.x = SPEED
+  mov.y = 0
 end
-local function moveUp(sprite)
+local function moveUp(sprite, mov)
   sprite.animating = true
   sprite:setAnimation(SPRITE_LAYERS.UP)
+  mov.y = -SPEED
+  mov.x = 0
 end
-local function moveDown(sprite)
+local function moveDown(sprite, mov)
   sprite.animating = true
   sprite:setAnimation(SPRITE_LAYERS.DOWN)
+  mov.y = SPEED
+  mov.x = 0
 end
-local function stop(sprite)
+local function stop(sprite, mov)
   sprite.animating = false
+  mov.y = 0
+  mov.x = 0
 end
 
 return {

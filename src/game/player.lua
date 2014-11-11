@@ -2,6 +2,7 @@
 -- Objects related to the main character
 local character = require('src.game.character')
 local sprite = require('src.graphics.sprite')
+local movement = require('src.movement')
 
 --------------------------------------------------------------------------------
 --- Component to tag an entity as the player
@@ -29,11 +30,12 @@ local function onKeyDown(world, key)
 
   if action then
     for entity, _ in world:getEntitiesWithComponent(Player.TYPE) do
-      local spriteComp = world:getEntityComponents(
+      local spriteComp, mov = world:getEntityComponents(
         entity,
-        sprite.SpriteComponent.TYPE
+        sprite.SpriteComponent.TYPE,
+        movement.TileMovable.TYPE
       )
-      character[action](spriteComp.sprite)
+      character[action](spriteComp.sprite, mov)
     end
   end
 end
@@ -43,11 +45,12 @@ end
 local function onKeyUp(world, key)
   if actionsPerKey[key] then
     for entity, _ in world:getEntitiesWithComponent(Player.TYPE) do
-      local spriteComp = world:getEntityComponents(
+      local spriteComp, mov = world:getEntityComponents(
         entity,
-        sprite.SpriteComponent.TYPE
+        sprite.SpriteComponent.TYPE,
+        movement.TileMovable.TYPE
       )
-      character.stop(spriteComp.sprite)
+      character.stop(spriteComp.sprite, mov)
     end
   end
 end

@@ -9,6 +9,7 @@ local overworld = require('src.generation.overworld')
 local gui      = require('src.gui')
 local character = require('src.game.character')
 local player = require('src.game.player')
+local movement = require('src.movement')
 
 local world = ecs.World:new()
 local canvas = graphics.base.Canvas:new{
@@ -109,4 +110,5 @@ function love.update(dt)
   end
 
   graphics.sprite.updateSprites(world, dt, 1 / 10)
+  movement.updateTileMovable(world, dt)
 end

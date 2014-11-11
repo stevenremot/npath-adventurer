@@ -65,7 +65,7 @@ local function analyzeSet(luaUnit, symbols, codeSpaces)
 
   for index, ident in pairs(lhs) do
     if ident.tag == "Id" then
-      symbols[ident[1]] = "value"
+      symbols[ident[1]] = ast.Value:new(ident[1])
     elseif ident.tag == "Index" then
       local name = ident[1][1]
       local prop = ident[2][1]

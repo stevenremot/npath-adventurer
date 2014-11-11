@@ -66,6 +66,19 @@ function TileIndex:register(entity, pos)
   local x, y = pos.x, pos.y
 
   self:indexEntity(entity, math.floor(x), math.floor(y))
+
+  local index = self
+  pos.setX = function (self, x)
+    index:removeEntity(entity, math.floor(self.x), math.floor(self.y))
+    self.x = x
+    index:indexEntity(entity, math.floor(self.x), math.floor(self.y))
+  end
+
+  pos.setY = function (self, x)
+    index:removeEntity(entity, math.floor(self.x), math.floor(self.y))
+    self.y = y
+    index:indexEntity(entity, math.floor(self.x), math.floor(self.y))
+  end
 end
 
 --------------------------------------------------------------------------------
@@ -80,11 +93,16 @@ function TileIndex:indexEntity(entity, x, y)
   end
 
   if not self.index[x][y] then
-    self.index[x][y] = { entity }
-  else
-    local i = self.index[x][y]
-    i[#i+1] = entity
+    self.index[x][y] = {}
   end
+
+  self.index[x][y][entity] = true
+end
+
+--------------------------------------------------------------------------------
+--- Remove an entity from the index
+function TileIndex:removeEntity(entity, x, y)
+  self.index[x][y][entity] = nil
 end
 
 --------------------------------------------------------------------------------
@@ -106,7 +124,7 @@ function TileIndex:getEntitiesInViewport(world, viewport)
     if self.index[x] then
       for y = up, down do
         if self.index[x][y] then
-          for _, entity in ipairs(self.index[x][y]) do
+          for entity, _ in pairs(self.index[x][y]) do
             local pos, renderable = world:getEntityComponents(
               entity, geometry.TilePositionable.TYPE, base.Renderable.TYPE
             )
