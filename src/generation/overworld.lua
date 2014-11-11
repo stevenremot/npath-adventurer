@@ -40,12 +40,13 @@ local function findNearestBiome(i, j, biomes)
     table.insert(nearestBiomes, { n, biome:distanceTo(i,j) })
   end
   table.sort(nearestBiomes, function (a,b) return a[2] < b[2] end)
-  return biomes[nearestBiomes[1][1]]
+  return biomes[nearestBiomes[1][1]], nearestBiomes[1][1]
 end
 
 --------------------------------------------------------------------------------
 --- Create the models.Biome objects based on the codespaces
-local function initBiomes(codespaces, biomes, rng)
+local function initBiomes(codespaces, rng)
+  local biomes = {}
 
   local biomeSquareNumber = math.sqrt(#codespaces) - math.sqrt(#codespaces)%1
   biomeSquareNumber = biomeSquareNumber + 1
@@ -53,7 +54,7 @@ local function initBiomes(codespaces, biomes, rng)
     w = OverworldSize.w / biomeSquareNumber,
     h = OverworldSize.h / biomeSquareNumber
   }
-  
+
   local permutations = {}
   for i = 1, biomeSquareNumber do
     for j = 1, biomeSquareNumber do
@@ -81,6 +82,77 @@ local function initBiomes(codespaces, biomes, rng)
     )
   end
 
+  return biomes
+end
+
+local function getTransition(transitions, biome1, biome2)
+  local t1 = transitions[biome1]
+  if t1 ~= nil then
+    local t12 = transitions[biome1][biomes2]
+    if t12 ~= nil then
+      return t12
+    end
+  end
+
+  local t2 = transitions[biome2]
+  if t2 ~= nil then
+    local t21 = transitions[biome2][biome1]
+    if t21 ~= nil then
+      return t21
+    end
+  end
+
+  transitions[biome1] = {}
+  transitions[biome1][biome2] = models.Transition:new(biome1, biome2)
+  return transitions[biome1][biome2]
+end
+
+local function createTransitions(biomes, biomeTiles)
+  local transitions = {}
+
+  -- vertical transitions
+  for i = 1, OverworldSize.w-1, 2 do
+    for j = 1, OverworldSize.w do
+      biome1 = biomeTiles[i][j]
+      biome2 = biomeTiles[i+1][j]
+      if biome1 ~= biome2 then
+        if biomes[biome1].z ~= biomes[biome2].z then
+          print(biome1, biome2)
+          local t = getTransition(transitions, biome1, biome2)
+          local s = models.TransitionSegment:new(
+            {i+1, j},
+            {i+1, j+1},
+            biome1,
+            biome2
+          )
+          t:addSegment(s)
+        end
+      end
+    end  
+  end
+
+  -- horizontal transitions
+  for i = 1, OverworldSize.w do
+    for j = 1, OverworldSize.w-1, 2 do
+      biome1 = biomeTiles[i][j]
+      biome2 = biomeTiles[i][j+1]
+      if biome1 ~= biome2 then
+        if biomes[biome1].z ~= biomes[biome2].z then
+          print(biome1, biome2)
+          local t = getTransition(transitions, biome1, biome2)
+          local s = models.TransitionSegment:new(
+            {i, j+1},
+            {i+1, j+1},
+            biome1,
+            biome2
+          )
+          t:addSegment(s)
+        end
+      end
+    end  
+  end
+
+  return transitions
 end
 
 --------------------------------------------------------------------------------
@@ -90,19 +162,23 @@ end
 local function generateOverworld(codespaces)
   -- fixed seed for testing purposes
   local rng = random.Rng:new(1)
-  local biomes = {}
 
-  initBiomes(codespaces, biomes, rng)
+  local biomes = initBiomes(codespaces, rng)
 
   local tiles = {}
+  local biomeTiles = {}
   for i = 1, OverworldSize.w do
     tiles[i] = {}
+    biomeTiles[i] = {}
     for j = 1, OverworldSize.h do
-      local biome = findNearestBiome(i, j, biomes)
+      local biome, biomeIndex = findNearestBiome(i, j, biomes)
       biome:addTiles({i, j})
       tiles[i][j] = world.Tile:new({type = biome.type, altitude = biome.z})
+      biomeTiles[i][j] = biomeIndex
     end
   end
+
+  local transitions = createTransitions(biomes, biomeTiles)
 
   local map = world.Map:new({tiles = tiles})
   return map

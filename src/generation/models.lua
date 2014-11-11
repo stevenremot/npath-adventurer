@@ -2,6 +2,11 @@
 --
 -- Modelisation of the overworld biomes and their transitions
 
+
+local function tileEquality(tile1, tile2)
+  return tile1[1] == tile2[1] and tile1[2] == tile2[2]
+end
+
 --------------------------------------------------------------------------------
 --- A tilemask is a table indexed with the tiles occupied by an object or
 --- an environment
@@ -167,33 +172,105 @@ local MetaTransitionSegment = {}
 
 --------------------------------------------------------------------------------
 --- Create a transition segment
--- vertical segment: left altitude z1, right altitude z2
--- horizontal segment: up altitude z1, down altitude z2
-function TransitionSegment:new(startPoint, endPoint, z1, z2)
-  local type = nil
-  if startPoint[1] == endPoint[1] then
-    type = "vertical"
-  elseif startPoint[2] == endPoint[2] then
-    type = "horizontal"
-  else
-    print("Transition segment must be horizontal or vertical")
-    return nil
-  end
-
+-- vertical segment: Oriented from left to right, left biome biome1, right biome biome2
+-- horizontal segment: Oriented from up to down, up biome biome1, down biome biome2
+function TransitionSegment:new(startPoint, endPoint, biome1, biome2)
   local transitionSegment = {
     startPoint = startPoint,
     endPoint = endPoint,
-    type = type,
-    z1 = z1,
-    z2 = z2
+    biome1 = biome1,
+    biome2 = biome2
   }
 
   setmetatable(transitionSegment, MetaTransitionSegment)
   return transitionSegment
 end
 
+--- Attempt to merge another TransitionSegment to self
+-- @return True if the segments could be merged, false otherwise
+function TransitionSegment:merge(other)
+  if self.biome1 == other.biome1 and self.biome2 == other.biome2 then
+    if tileEquality(self.startPoint, other.endPoint) then
+      self.startPoint = other.startPoint
+      return true
+    elseif tileEquality(self.endPoint, other.startPoint) then
+      self.endPoint = other.endPoint
+      return true
+    end
+  end
+
+  return false
+end
+
+function TransitionSegment:getLength()
+  return math.max(
+    self.endPoint[1] - self.startPoint[1],
+    self.endPoint[2] - self.startPoint[2]
+  )
+end
+
+function TransitionSegment:getType()
+  if self.startPoint[1] == self.endPoint[1] then
+    return 'vertical'
+  elseif self.startPoint[2] == self.endPoint[2] then
+    return 'horizontal'
+  else
+    print('error: segment shoud be horizontal or vertical')
+  end
+end
+
+MetaTransitionSegment.__index = TransitionSegment
+
+local function addSegmentInTable(t, segment)
+  local merged = false
+
+  for _, s in ipairs(t) do
+    if s:merge(segment) then
+      merged = true
+      break
+    end
+  end
+
+  if not merged then
+    table.insert(t, segment)
+  end
+end
+
+
+local Transition = {}
+local MetaTransition = {}
+
+--- Transition between the biomes of index biome1 and biome2
+function Transition:new(biome1, biome2)
+  local transition = {
+    biome1 = biome1,
+    biome2 = biome2,
+    horizontal = {},
+    vertical = {}
+  }
+
+  setmetatable(transition, MetaTransition)
+  return transition
+end
+
+function Transition:addSegment(segment)
+  if segment:getType() == "vertical" then
+    addSegmentInTable(self.vertical, segment)
+  elseif segment:getType() == "horizontal" then
+    addSegmentInTable(self.horizontal, segment)
+  end
+end
+
+function Transition:sort()
+  table.sort(self.horizontal)
+  table.sort(self.vertical)
+end
+
+MetaTransition.__index = Transition
 
 return {
   TileMask = TileMask,
-  Biome = Biome
+  Biome = Biome,
+  Transition = Transition,
+  TransitionSegment = TransitionSegment
 }
