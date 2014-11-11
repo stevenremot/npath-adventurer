@@ -236,6 +236,15 @@ end
 MetaViewport.__index = Viewport
 
 --------------------------------------------------------------------------------
+--- Compare tile by their drawing order
+--
+-- @param a
+-- @param b
+local function compareTilesLayer(a, b)
+  return a.tile.z < b.tile.z and a.tile.layer < b.tile.layer
+end
+
+--------------------------------------------------------------------------------
 --- Render the tilepositionable entities on a canvas
 --- This should be used to render game elements
 --
@@ -246,34 +255,28 @@ local function tilerender(world, canvas, viewport)
   local entitiesToDraw = {}
 
   for entity, renderable in world:getEntitiesWithComponent(Renderable.TYPE) do
+    local pos, size = world:getEntityComponents(
+      entity,
+      geometry.TilePositionable.TYPE,
+      geometry.TileDimensionable.TYPE
+    )
 
-    if world:hasComponent(entity, geometry.TilePositionable.TYPE) then
-
-      local tilePositionable = world:getEntityComponents(
-        entity,
-        geometry.TilePositionable.TYPE
-      )      
-      local x, y = tilePositionable.x, tilePositionable.y
+    if pos then
+      local x, y = pos.x, pos.y
       local w, h = geometry.TileSize, geometry.TileSize
-      if world:hasComponent(entity, geometry.TileDimensionable.TYPE) then
-        local tileDimensionable = world:getEntityComponents(
-          entity,
-          geometry.TileDimensionable.TYPE
-        )
-        w, h = tileDimensionable.w, tileDimensionable.h
+
+      if size then
+        w, h = size.w, size.h
       end
 
       if viewport:intersects(x, y, w, h) then
-        table.insert(entitiesToDraw, { tile = tilePositionable, render = renderable })
+        entitiesToDraw[#entitiesToDraw+1] =  { tile = pos, render = renderable }
       end
-
     end
-
   end
 
   if #entitiesToDraw > 0 then
-    print(#entitiesToDraw)
-    table.sort(entitiesToDraw, function (a, b) return a.tile.z < b.tile.z and a.tile.layer < b.tile.layer end)
+    table.sort(entitiesToDraw, compareTilesLayer)
     for _, e in ipairs(entitiesToDraw) do
       local x = (e.tile.x - viewport.x) * geometry.TileSize
       local y = (e.tile.y - viewport.y) * geometry.TileSize
