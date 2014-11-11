@@ -16,42 +16,52 @@ function Player:new()
   }
 end
 
-local actionsPerKey = {
-  left = "moveLeft",
-  right = "moveRight",
-  down = "moveDown",
-  up = "moveUp"
-}
+local dx = 0
+local dy = 0
 
 --------------------------------------------------------------------------------
 --- Called when a key has been pressed to move the player
 local function onKeyDown(world, key)
-  local action = actionsPerKey[key]
+  if key == "left" then
+    dx = dx - 1
+  elseif key == "right" then
+    dx = dx + 1
+  elseif key == "up" then
+    dy = dy - 1
+  elseif key == "down" then
+    dy = dy + 1
+  end
 
-  if action then
-    for entity, _ in world:getEntitiesWithComponent(Player.TYPE) do
-      local spriteComp, mov = world:getEntityComponents(
-        entity,
-        sprite.SpriteComponent.TYPE,
-        movement.TileMovable.TYPE
-      )
-      character[action](spriteComp.sprite, mov)
-    end
+  for entity, _ in world:getEntitiesWithComponent(Player.TYPE) do
+    local spriteComp, mov = world:getEntityComponents(
+      entity,
+      sprite.SpriteComponent.TYPE,
+      movement.TileMovable.TYPE
+    )
+    character.move(spriteComp.sprite, mov, dx, dy)
   end
 end
 
 --------------------------------------------------------------------------------
 --- Called when a key has been released
 local function onKeyUp(world, key)
-  if actionsPerKey[key] then
-    for entity, _ in world:getEntitiesWithComponent(Player.TYPE) do
-      local spriteComp, mov = world:getEntityComponents(
-        entity,
-        sprite.SpriteComponent.TYPE,
-        movement.TileMovable.TYPE
-      )
-      character.stop(spriteComp.sprite, mov)
-    end
+  if key == "left" then
+    dx = dx + 1
+  elseif key == "right" then
+    dx = dx - 1
+  elseif key == "up" then
+    dy = dy + 1
+  elseif key == "down" then
+    dy = dy - 1
+  end
+
+  for entity, _ in world:getEntitiesWithComponent(Player.TYPE) do
+    local spriteComp, mov = world:getEntityComponents(
+      entity,
+      sprite.SpriteComponent.TYPE,
+      movement.TileMovable.TYPE
+    )
+    character.move(spriteComp.sprite, mov, dx, dy)
   end
 end
 

@@ -53,41 +53,28 @@ local SPEED = 5
 
 --------------------------------------------------------------------------------
 --- Movement functions for a character
-local function moveLeft(sprite, mov)
-  sprite.animating = true
-  sprite:setAnimation(SPRITE_LAYERS.LEFT)
-  mov.x = -SPEED
-  mov.y = 0
-end
-local function moveRight(sprite, mov)
-  sprite.animating = true
-  sprite:setAnimation(SPRITE_LAYERS.RIGHT)
-  mov.x = SPEED
-  mov.y = 0
-end
-local function moveUp(sprite, mov)
-  sprite.animating = true
-  sprite:setAnimation(SPRITE_LAYERS.UP)
-  mov.y = -SPEED
-  mov.x = 0
-end
-local function moveDown(sprite, mov)
-  sprite.animating = true
-  sprite:setAnimation(SPRITE_LAYERS.DOWN)
-  mov.y = SPEED
-  mov.x = 0
-end
-local function stop(sprite, mov)
-  sprite.animating = false
-  mov.y = 0
-  mov.x = 0
+local function move(sprite, mov, dx, dy)
+  if dx == 0 and dy == 0 then
+    mov.x, mov.y = 0, 0
+    sprite.animating = false
+  else
+    mov.x = dx * SPEED
+    mov.y = dy * SPEED
+    sprite.animating = true
+
+    if dx > 0 then
+      sprite:setAnimation(SPRITE_LAYERS.RIGHT)
+    elseif dx < 0 then
+      sprite:setAnimation(SPRITE_LAYERS.LEFT)
+    elseif dy > 0 then
+      sprite:setAnimation(SPRITE_LAYERS.DOWN)
+    else
+      sprite:setAnimation(SPRITE_LAYERS.UP)
+    end
+  end
 end
 
 return {
   createCharacter = createCharacter,
-  moveLeft = moveLeft,
-  moveRight = moveRight,
-  moveUp = moveUp,
-  moveDown = moveDown,
-  stop = stop
+  move = move
 }
