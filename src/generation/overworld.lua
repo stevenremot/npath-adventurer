@@ -7,15 +7,15 @@ local random = require('src.generation.random')
 --------------------------------------------------------------------------------
 --- The overworld is a rectangle with the given size (in tile units)
 local OverworldSize = {
-  w = 50,
-  h = 50 
+  w = 200,
+  h = 200
 }
 
 local BiomeTypes = {
   { world.Tile.TYPE.PLAIN, 5},
   { world.Tile.TYPE.VILLAGE, 2},
   { world.Tile.TYPE.FOREST, 3},
-  { world.Tile.TYPE.FACTORY, 1} 
+  { world.Tile.TYPE.FACTORY, 1}
 }
 --------------------------------------------------------------------------------
 --- A tilemask is a table indexed with the tiles occupied by an object or
@@ -180,7 +180,7 @@ end
 --------------------------------------------------------------------------------
 --- Generate the overworld map
 -- @param codespace list
--- @return "overworld" world.Map 
+-- @return "overworld" world.Map
 local function generateOverworld(codespaces)
   -- fixed seed for testing purposes
   local rng = random.Rng:new(1)
@@ -195,8 +195,8 @@ local function generateOverworld(codespaces)
       local biome = findNearestBiome(i, j, biomes)
       tiles[i][j] = world.Tile:new({type = biome.type, altitude = biome.z})
     end
-  end 
-  
+  end
+
   local map = world.Map:new({tiles = tiles})
   return map
 end

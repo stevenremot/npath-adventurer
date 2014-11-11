@@ -1,4 +1,6 @@
 require('luarocks.loader')
+require('profiler')
+
 local parser   = require('src.parser.lua')
 local ecs      = require('src.ecs')
 local graphics = require('src.graphics')
@@ -28,7 +30,7 @@ function love.load()
   canvas:setFontSize(20)
 
   local ast = parser.parseDir('src/')
-  seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })  
+  seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
   map = overworld.generateOverworld(seg.overworld)
   map:toEntities(world)
 
@@ -60,11 +62,13 @@ function love.load()
       strokeColor = { r = 255, g = 255, b = 255 }
     }
   )
+
+  -- profiler.start('out.log')
 end
 
 function love.draw()
   graphics.tilerender(world, canvas, viewport)
-  graphics.render(world, canvas)
+  -- graphics.render(world, canvas)
   guiSystem:render(canvas)
 
   love.graphics.print(
@@ -118,3 +122,6 @@ function love.update(dt)
   end
 end
 
+function love.quit()
+  -- profiler.stop()
+end
