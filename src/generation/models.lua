@@ -114,13 +114,44 @@ function Biome:new(codeSpace, center, type, z)
     codeSpace = codeSpace,
     center = center,
     type = type,
-    z = z or 0
+    z = z or 0,
+    tileList = {},
+    tileMask = TileMask:new()
   }
 
   setmetatable(biome, MetaBiome)
   return biome
 end
 
+--------------------------------------------------------------------------------
+--- Add a list of tile index
+function Biome:addTileList(list)
+  for _, tile in ipairs(list) do
+    table.insert(self.tileList, tile)
+  end
+  self.tileMask:addList(list)
+end
+
+--------------------------------------------------------------------------------
+--- Add one or several tile index
+function Biome:addTiles(...)
+  for _, tile in ipairs({...}) do
+    table.insert(self.tileList, tile)
+  end
+  self.tileMask:add(...)
+end
+
+--------------------------------------------------------------------------------
+--- Remove one or several tile index
+function Biome:removeTiles(...)
+  for _, tile in ipairs({...}) do
+    table.remove(self.tileList, tile)
+  end
+  self.tileMask:remove(...)
+end
+
+--------------------------------------------------------------------------------
+--- Distance of a given point to the biome
 function Biome:distanceTo(x, y)
   local distance = ((x - self.center.x)^2 + (y - self.center.y)^2)
   distance = distance / self.codeSpace:getComplexity()
@@ -128,6 +159,39 @@ function Biome:distanceTo(x, y)
 end
 
 MetaBiome.__index = Biome
+
+--------------------------------------------------------------------------------
+--- A biome transition segment
+local TransitionSegment = {}
+local MetaTransitionSegment = {}
+
+--------------------------------------------------------------------------------
+--- Create a transition segment
+-- vertical segment: left altitude z1, right altitude z2
+-- horizontal segment: up altitude z1, down altitude z2
+function TransitionSegment:new(startPoint, endPoint, z1, z2)
+  local type = nil
+  if startPoint[1] == endPoint[1] then
+    type = "vertical"
+  elseif startPoint[2] == endPoint[2] then
+    type = "horizontal"
+  else
+    print("Transition segment must be horizontal or vertical")
+    return nil
+  end
+
+  local transitionSegment = {
+    startPoint = startPoint,
+    endPoint = endPoint,
+    type = type,
+    z1 = z1,
+    z2 = z2
+  }
+
+  setmetatable(transitionSegment, MetaTransitionSegment)
+  return transitionSegment
+end
+
 
 return {
   TileMask = TileMask,

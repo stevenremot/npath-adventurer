@@ -98,6 +98,7 @@ local function generateOverworld(codespaces)
     tiles[i] = {}
     for j = 1, OverworldSize.h do
       local biome = findNearestBiome(i, j, biomes)
+      biome:addTiles({i, j})
       tiles[i][j] = world.Tile:new({type = biome.type, altitude = biome.z})
     end
   end
