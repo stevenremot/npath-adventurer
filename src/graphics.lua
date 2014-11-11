@@ -115,14 +115,24 @@ end
 --------------------------------------------------------------------------------
 --- Draw an image on the screen
 --
--- @param options.image
+-- @param options.image Love image or sprite
 -- @param options.x
 -- @param options.y
 --
 -- @return self
 function Canvas:drawImage(options)
   local x, y = self:canvasToScreen(options.x, options.y)
-  love.graphics.draw(options.image, x, y, 0, self.ratio.x, self.ratio.y)
+
+  if options.image.quad then
+    love.graphics.draw(
+      options.image.image,
+      options.image.quad,
+      x, y, 0,
+      self.ratio.x, self.ratio.y
+    )
+  else
+    love.graphics.draw(options.image, x, y, 0, self.ratio.x, self.ratio.y)
+  end
   return self
 end
 
@@ -327,7 +337,8 @@ MetaTileIndex.__index = TileIndex
 -- @param a
 -- @param b
 local function compareTilesLayer(a, b)
-  return a.tile.z < b.tile.z and a.tile.layer < b.tile.layer
+  local az, bz = a.tile.z, b.tile.z
+  return az < bz or (az == bz and  a.tile.layer < b.tile.layer)
 end
 
 --------------------------------------------------------------------------------

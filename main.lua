@@ -1,5 +1,4 @@
 require('luarocks.loader')
-require('profiler')
 local parser   = require('src.parser.lua')
 local ecs      = require('src.ecs')
 local graphics = require('src.graphics')
@@ -8,6 +7,7 @@ local assets   = require('src.assets')
 local segmentation = require('src.generation.segmentation')
 local overworld = require('src.generation.overworld')
 local gui      = require('src.gui')
+local sprite = require('src.sprite')
 
 local world = ecs.World:new()
 local canvas = graphics.Canvas:new{
@@ -25,6 +25,14 @@ viewportSpeed = { x = 0, y = 0, value = 5 }
 
 local guiSystem = gui.System:new(world)
 local tileRenderSystem = graphics.TileRenderSystem:new(world)
+
+local gummySprite = sprite.Sprite:new(
+  assets.loadSprite(
+    'assets/images/gummy.png',
+    40, 80,
+    4, 4
+  )
+)
 
 function love.load()
   canvas:setFontSize(20)
@@ -46,11 +54,31 @@ function love.load()
     }
   )
 
-  -- profiler.start('out.log')
+  local gummy = world:createEntity()
+  local pos = geometry.TilePositionable:new(10, 10, 0, 1)
+  world:addComponent(
+    gummy,
+    pos
+  )
+  world:addComponent(
+    gummy,
+    geometry.TileDimensionable:new(40, 80)
+  )
+  world:addComponent(
+    gummy,
+    graphics.Renderable:new(function (canvas)
+        canvas:drawImage{
+          image = gummySprite,
+          x = 0,
+          y = 0
+        }
+    end)
+  )
+  tileRenderSystem.index:register(gummy, pos)
+
 end
 
 function love.draw()
-  -- graphics.tilerender(world, canvas, viewport)
   tileRenderSystem:render(canvas, viewport)
   guiSystem:render(canvas)
 
@@ -65,12 +93,16 @@ function love.keypressed(key)
   local v = viewportSpeed.value
   if key == "down" then
     viewportSpeed.y = math.min(v, viewportSpeed.y + v)
+    gummySprite:setAnimation(1)
   elseif key == "up" then
     viewportSpeed.y = math.max(-v, viewportSpeed.y - v)
+    gummySprite:setAnimation(4)
   elseif key == "left" then
     viewportSpeed.x = math.max(-v, viewportSpeed.x - v)
+    gummySprite:setAnimation(3)
   elseif key == "right" then
     viewportSpeed.x = math.min(v, viewportSpeed.x + v)
+    gummySprite:setAnimation(2)
   end
   guiSystem:onKeyDown(key)
 end
@@ -93,6 +125,8 @@ function love.keyreleased(key)
 end
 
 local mouseX, mouseY = 0, 0
+local increment = 0
+local delay = 1 / 10
 
 function love.update(dt)
   viewport:translate(viewportSpeed.x * dt, viewportSpeed.y * dt)
@@ -103,8 +137,10 @@ function love.update(dt)
     guiSystem:onMouseMove(x, y)
     mouseX, mouseY = x, y
   end
-end
 
-function love.quit()
-  -- profiler.stop()
+  increment = increment + dt
+  while increment > delay do
+    increment = increment - delay
+    gummySprite:nextStep()
+  end
 end
