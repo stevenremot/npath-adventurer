@@ -116,17 +116,17 @@ end
 --- Create ecs entities from the map's tiles
 --
 -- @param ecsWorld         Ecs world
--- @param tileRenderSystem
+-- @param tileIndex
 --
 -- @return A table of ecs entities
-function Map:toEntities(ecsWorld, tileRenderSystem)
+function Map:toEntities(ecsWorld, tileIndex)
   local entities = {}
 
   for i, line in ipairs(self.tiles) do
     for j, tile in ipairs(line) do
       local entity = assets.createTileEntity(
         ecsWorld,
-        tileRenderSystem,
+        tileIndex,
         'assets/images/' .. tile.type .. '.png',
         i,
         j,

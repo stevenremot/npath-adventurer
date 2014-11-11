@@ -12,7 +12,7 @@ local loadedAssets = {}
 --------------------------------------------------------------------------------
 --- Create a renderable, tilepositionable and tiledimensionable entity
 --- from an image file
-local function createTileEntity(world, tileRenderSystem, imageDir, x, y, z, layer)
+local function createTileEntity(world, tileIndex, imageDir, x, y, z, layer)
   local x = x or 0
   local y = y or 0
   local z = z or 0
@@ -24,7 +24,7 @@ local function createTileEntity(world, tileRenderSystem, imageDir, x, y, z, laye
     entity,
     pos
   )
-  tileRenderSystem:indexTile(entity, pos)
+  tileIndex:register(entity, pos)
 
   local image = loadedAssets[imageDir]
   if not image then
