@@ -272,7 +272,6 @@ local function tilerender(world, canvas, viewport)
   end
 
   if #entitiesToDraw > 0 then
-    print(#entitiesToDraw)
     table.sort(entitiesToDraw, function (a, b) return a.tile.z < b.tile.z and a.tile.layer < b.tile.layer end)
     for _, e in ipairs(entitiesToDraw) do
       local x = (e.tile.x - viewport.x) * geometry.TileSize

@@ -25,7 +25,7 @@ function Rng:randomf(...)
   if #{...} == 0 then
     return self.loveRng:random()
   elseif #{...} == 2 then
-    min, max = ...
+    local min, max = ...
     return min + self.loveRng:random() * (max - min)
   else
     print("Wrong argument number")
@@ -89,7 +89,7 @@ local function test()
   print(rng:randomf(), rng:randomf(2, 6), rng:randomi(5, 10), rng:randomNormal(0, 1))
   print(rng:randomListElement(list)[1])
 
-  for i = 1, 10 do
+  for _ = 1, 10 do
     print(rng:randomDensityListElement(list))
   end
 end

@@ -7,8 +7,8 @@ local random = require('src.generation.random')
 --------------------------------------------------------------------------------
 --- The overworld is a rectangle with the given size (in tile units)
 local OverworldSize = {
-  w = 200,
-  h = 200 
+  w = 50,
+  h = 50 
 }
 
 local BiomeTypes = {

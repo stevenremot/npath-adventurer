@@ -55,7 +55,7 @@ end
 local function sliceByComplexity(codeSpaces, threshold)
   local tinyCodeSpaces = {}
   local bigCodeSpaces = {}
-  for i, codeSpace in ipairs(codeSpaces) do
+  for _, codeSpace in ipairs(codeSpaces) do
     if codeSpace:getComplexity() < threshold then
       table.insert(tinyCodeSpaces, codeSpace)
     else
@@ -142,7 +142,7 @@ local function segmentCodeSpace(codeSpace, options)
 
   local dungeons = {}
 
-  for i = 1, math.ceil(#codeSpaces * options.dungeonRatio) do
+  for _ = 1, math.ceil(#codeSpaces * options.dungeonRatio) do
     table.insert(dungeons, table.remove(codeSpaces, #codeSpaces))
   end
 

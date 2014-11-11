@@ -54,7 +54,7 @@ end
 function World:removeEntity(entity)
   table.insert(self.freeEntities, entity)
 
-  for type, tab in pairs(self.components) do
+  for _, tab in pairs(self.components) do
     tab[entity] = nil
   end
 end
@@ -71,7 +71,7 @@ function World:hasComponent(entity, componentType)
   if self.components[componentType] then  
     return self.components[componentType][entity] ~= nil
   else
-    return False
+    return false
   end
 end
 
