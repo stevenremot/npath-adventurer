@@ -8,8 +8,8 @@ local models = require('src.generation.models')
 --------------------------------------------------------------------------------
 --- The overworld is a rectangle with the given size (in tile units)
 local OverworldSize = {
-  w = 200,
-  h = 200
+  w = 30,
+  h = 30
 }
 
 --------------------------------------------------------------------------------
@@ -86,23 +86,21 @@ local function initBiomes(codespaces, rng)
 end
 
 local function getTransition(transitions, biome1, biome2)
-  local t1 = transitions[biome1]
-  if t1 ~= nil then
-    local t12 = transitions[biome1][biomes2]
-    if t12 ~= nil then
-      return t12
+  if transitions[biome1] ~= nil then
+    if transitions[biome1][biome2] ~= nil then
+      return transitions[biome1][biome2]
     end
   end
 
-  local t2 = transitions[biome2]
-  if t2 ~= nil then
-    local t21 = transitions[biome2][biome1]
-    if t21 ~= nil then
-      return t21
+  if transitions[biome2] ~= nil then
+    if transitions[biome2][biome1] ~= nil then
+      return transitions[biome2][biome1]
     end
   end
 
-  transitions[biome1] = {}
+  if transitions[biome1] == nil then
+    transitions[biome1] = {}
+  end
   transitions[biome1][biome2] = models.Transition:new(biome1, biome2)
   return transitions[biome1][biome2]
 end
@@ -111,13 +109,12 @@ local function createTransitions(biomes, biomeTiles)
   local transitions = {}
 
   -- vertical transitions
-  for i = 1, OverworldSize.w-1, 2 do
-    for j = 1, OverworldSize.w do
+  for j = 1, OverworldSize.h do
+    for i = 1, OverworldSize.w-1 do
       biome1 = biomeTiles[i][j]
       biome2 = biomeTiles[i+1][j]
       if biome1 ~= biome2 then
         if biomes[biome1].z ~= biomes[biome2].z then
-          print(biome1, biome2)
           local t = getTransition(transitions, biome1, biome2)
           local s = models.TransitionSegment:new(
             {i+1, j},
@@ -133,12 +130,11 @@ local function createTransitions(biomes, biomeTiles)
 
   -- horizontal transitions
   for i = 1, OverworldSize.w do
-    for j = 1, OverworldSize.w-1, 2 do
+    for j = 1, OverworldSize.h-1 do
       biome1 = biomeTiles[i][j]
       biome2 = biomeTiles[i][j+1]
       if biome1 ~= biome2 then
         if biomes[biome1].z ~= biomes[biome2].z then
-          print(biome1, biome2)
           local t = getTransition(transitions, biome1, biome2)
           local s = models.TransitionSegment:new(
             {i, j+1},
@@ -155,11 +151,19 @@ local function createTransitions(biomes, biomeTiles)
   return transitions
 end
 
+local function createTransitionEntities(ecsWorld, tileIndex, transitions)
+  for _, line in pairs(transitions) do
+    for _, t in pairs(line) do
+      t:createEntities(ecsWorld, tileIndex)
+    end
+  end
+end
+
 --------------------------------------------------------------------------------
 --- Generate the overworld map
 -- @param codespace list
 -- @return "overworld" world.Map
-local function generateOverworld(codespaces)
+local function generateOverworld(codespaces, ecsWorld, tileIndex)
   -- fixed seed for testing purposes
   local rng = random.Rng:new(1)
 
@@ -179,6 +183,7 @@ local function generateOverworld(codespaces)
   end
 
   local transitions = createTransitions(biomes, biomeTiles)
+  createTransitionEntities(ecsWorld, tileIndex, transitions)
 
   local map = world.Map:new({tiles = tiles})
   return map
