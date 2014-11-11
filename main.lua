@@ -66,6 +66,12 @@ function love.draw()
   graphics.tilerender(world, canvas, viewport)
   graphics.render(world, canvas)
   guiSystem:render(canvas)
+
+  love.graphics.print(
+    love.timer.getFPS() .. "",
+    0,
+    0
+  )
 end
 
 function love.keypressed(key)

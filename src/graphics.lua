@@ -225,7 +225,7 @@ end
 --- Check if an entity with tileposition x, y and dimensions w, h intersects the
 --- viewport
 function Viewport:intersects(x, y, w, h)
-  return (x + w > self.x or x < self.x + self.w) and (y + h > self.y or y < self.y + self.h)
+  return x + w > self.x and x < self.x + self.w and y + h > self.y and y < self.y + self.h
 end
 
 function Viewport:translate(dx, dy)
@@ -252,9 +252,8 @@ local function tilerender(world, canvas, viewport)
       local tilePositionable = world:getEntityComponents(
         entity,
         geometry.TilePositionable.TYPE
-      )
+      )      
       local x, y = tilePositionable.x, tilePositionable.y
-
       local w, h = geometry.TileSize, geometry.TileSize
       if world:hasComponent(entity, geometry.TileDimensionable.TYPE) then
         local tileDimensionable = world:getEntityComponents(
@@ -273,6 +272,7 @@ local function tilerender(world, canvas, viewport)
   end
 
   if #entitiesToDraw > 0 then
+    print(#entitiesToDraw)
     table.sort(entitiesToDraw, function (a, b) return a.tile.z < b.tile.z and a.tile.layer < b.tile.layer end)
     for _, e in ipairs(entitiesToDraw) do
       local x = (e.tile.x - viewport.x) * geometry.TileSize
