@@ -87,7 +87,7 @@ end
 function Canvas:drawText(options)
   local color = options.color
   love.graphics.setColor(color.r, color.g, color.b, color.a)
-  x, y = self:canvasToScreen(options.x, options.y)
+  local x, y = self:canvasToScreen(options.x, options.y)
 
   if options.width then
     local screenWidth = options.width * self.ratio.x
@@ -139,7 +139,7 @@ end
 local function render(world, canvas)
   for entity, renderable in world:getEntitiesWithComponent(Renderable.TYPE) do
     if world:hasComponent(entity, geometry.Positionable.TYPE) then
-      positionable = world:getEntityComponents(
+      local positionable = world:getEntityComponents(
         entity,
         geometry.Positionable.TYPE
       )
@@ -201,7 +201,7 @@ local function tilerender(world, canvas, viewport)
 
     if world:hasComponent(entity, geometry.TilePositionable.TYPE) then
 
-      tilePositionable = world:getEntityComponents(
+      local tilePositionable = world:getEntityComponents(
         entity,
         geometry.TilePositionable.TYPE
       )
@@ -209,7 +209,7 @@ local function tilerender(world, canvas, viewport)
 
       local w, h = geometry.TileSize, geometry.TileSize
       if world:hasComponent(entity, geometry.TileDimensionable.TYPE) then
-        tileDimensionable = world:getEntityComponents(
+        local tileDimensionable = world:getEntityComponents(
           entity,
           geometry.TileDimensionable.TYPE
         )
@@ -227,8 +227,8 @@ local function tilerender(world, canvas, viewport)
   if #entitiesToDraw > 0 then
     table.sort(entitiesToDraw, function (a, b) return a.tile.z < b.tile.z and a.tile.layer < b.tile.layer end)
     for _, e in ipairs(entitiesToDraw) do
-      x = (e.tile.x - viewport.x) * geometry.TileSize
-      y = (e.tile.y - viewport.y) * geometry.TileSize
+      local x = (e.tile.x - viewport.x) * geometry.TileSize
+      local y = (e.tile.y - viewport.y) * geometry.TileSize
       e.render.draw(canvas:translate(x, y))
     end
   end

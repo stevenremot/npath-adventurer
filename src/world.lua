@@ -1,6 +1,7 @@
 -- world.lua
 --
 -- Data structure representing the game world
+local assets = require('src.assets')
 
 --------------------------------------------------------------------------------
 -- A tile contains information on a map's cell
@@ -40,7 +41,7 @@ end
 --
 -- @return A string
 function Tile:serialize()
-  attributes = {
+  local attributes = {
     "type = '"  .. self.type .. "'",
     "altitude = " .. self.altitude
   }
@@ -110,6 +111,33 @@ function Map:serialize()
   s = s .. " tiles = " .. self:serializeTiles()
   return s .. " }"
 end
+
+--------------------------------------------------------------------------------
+--- Create ecs entities from the map's tiles
+--
+-- @param ecsWorld Ecs world
+-- @return A table of ecs entities 
+function Map:toEntities(ecsWorld)
+  local entities = {}
+  
+  for i, line in ipairs(self.tiles) do
+    for j, tile in ipairs(line) do
+      local entity = assets.createTileEntity(
+        ecsWorld,
+        'assets/images/' .. tile.type .. '.png',
+        i,
+        j,
+        tile.altitude
+      )
+      table.insert(entities, entity)
+    end
+  end
+  
+  return entities
+end
+
+
+
 
 MetaMap.__index = Map
 

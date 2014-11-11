@@ -7,8 +7,8 @@ local random = require('src.generation.random')
 --------------------------------------------------------------------------------
 --- The overworld is a rectangle with the given size (in tile units)
 local OverworldSize = {
-  w = 300,
-  h = 300 
+  w = 50,
+  h = 50 
 }
 
 local BiomeTypes = {
@@ -133,7 +133,7 @@ end
 MetaBiome.__index = Biome
 
 local function findNearestBiome(i, j, biomes)
-  nearestBiomes = {}
+  local nearestBiomes = {}
   for n, biome in ipairs(biomes) do
     table.insert(nearestBiomes, { n, biome:distanceTo(i,j) })
   end
@@ -192,7 +192,7 @@ local function generateOverworld(codespaces)
   for i = 1, OverworldSize.w do
     tiles[i] = {}
     for j = 1, OverworldSize.h do
-      biome = findNearestBiome(i, j, biomes)
+      local biome = findNearestBiome(i, j, biomes)
       tiles[i][j] = world.Tile:new({type = biome.type, altitude = biome.z})
     end
   end 

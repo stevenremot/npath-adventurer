@@ -27,10 +27,9 @@ function love.load()
   random.test()
   
   local ast = parser.parseDir('src/')
-  seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
-  print(#seg.overworld, #seg.dungeons, seg.overworld[4]:getComplexity())
-  
-  overworld.generateOverworld(seg.overworld)
+  seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })  
+  map = overworld.generateOverworld(seg.overworld)
+  map:toEntities(world)
 
   local entity = world:createEntity()
   world:addComponent(
@@ -67,14 +66,14 @@ function love.load()
     geometry.Positionable:new(50, 50)
   )
 
-  for i = 0, 19 do
+  --[[for i = 0, 19 do
     for j = 0, 14 do
       if ((i+j) % 2 == 0) then
-        assets.createTileEntity(world, 'assets/images/grass.png', i, j)
+        assets.createTileEntity(world, 'assets/images/plain.png', i, j)
       else 
         assets.createTileEntity(world, 'assets/images/rock.png', i, j) end
       end
-    end
+    end]]
 
   end
 
