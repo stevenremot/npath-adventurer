@@ -236,6 +236,92 @@ end
 MetaViewport.__index = Viewport
 
 --------------------------------------------------------------------------------
+--- Index to quickly retrieve tile entities
+local TileIndex = {}
+local MetaTileIndex = {}
+
+--------------------------------------------------------------------------------
+--- Create a new index
+--
+-- @return A new index
+function TileIndex:new()
+  local index = {
+    index = {}
+  }
+  setmetatable(index, MetaTileIndex)
+  return index
+end
+
+--------------------------------------------------------------------------------
+--- Add an entity to the index
+--
+-- @param entity
+-- @param pos    Its TilePositionable component
+function TileIndex:register(entity, pos)
+  local x, y = pos.x, pos.y
+
+  self:indexEntity(entity, math.floor(x), math.floor(y))
+end
+
+--------------------------------------------------------------------------------
+--- Index an entity to a position
+--
+-- @param entity
+-- @param x      integer
+-- @param y      integer
+function TileIndex:indexEntity(entity, x, y)
+  if not self.index[x] then
+    self.index[x] = {}
+  end
+
+  if not self.index[x][y] then
+    self.index[x][y] = { entity }
+  else
+    local i = self.index[x][y]
+    i[#i+1] = entity
+  end
+end
+
+--------------------------------------------------------------------------------
+--- Get entities to draw on viewport
+--
+-- @param world
+-- @param viewport
+--
+-- @return A list of { entity = entity, tile = TIlePositonable, render = Renderable }
+function TileIndex:getEntitiesInViewport(world, viewport)
+  local entitiesToDraw = {}
+
+  local left = math.floor(viewport.x) - 1
+  local right = math.ceil(viewport.x + viewport.w)
+  local up = math.floor(viewport.y) - 1
+  local down = math.ceil(viewport.y + viewport.h)
+
+  for x = left, right do
+    if self.index[x] then
+      for y = up, down do
+        if self.index[x][y] then
+          for _, entity in ipairs(self.index[x][y]) do
+            local pos, renderable = world:getEntityComponents(
+              entity, geometry.TilePositionable.TYPE, Renderable.TYPE
+            )
+            entitiesToDraw[#entitiesToDraw+1] = {
+              entity = entity,
+              tile = pos,
+              render = renderable
+            }
+          end
+        end
+      end
+    end
+  end
+
+  return entitiesToDraw
+end
+
+MetaTileIndex.__index = TileIndex
+
+--------------------------------------------------------------------------------
 --- Compare tile by their drawing order
 --
 -- @param a
@@ -258,71 +344,10 @@ local MetaTileRenderSystem = {}
 function TileRenderSystem:new(world)
   local system = {
     world = world,
-    tiles = {},
-    indexedEntities = {}
+    index = TileIndex:new(),
   }
   setmetatable(system, MetaTileRenderSystem)
   return system
-end
-
---------------------------------------------------------------------------------
---- Index a tile by its position
---
--- @param entity
--- @param position The TIlePositionable component
-function TileRenderSystem:indexTile(entity, position)
-  local x, y = math.floor(position.x), math.floor(position.y)
-  self.indexedEntities[entity] = { x, y }
-
-  if not self.tiles[x] then self.tiles[x] = {} end
-  if not self.tiles[x][y] then self.tiles[x][y] = {} end
-
-  local t = self.tiles[x][y]
-  t[#t+1] = entity
-end
-
---------------------------------------------------------------------------------
---- Return true if this tile is indexed, false otherwise
---
--- @param entity
---
--- @return boolean
-function TileRenderSystem:hasIndexedTile(entity)
-  return self.indexedEntities[entity] ~= nil
-end
-
---------------------------------------------------------------------------------
---- Get entities to draw on viewport
---
--- @param viewport
---
--- @return A list of { entity = entity, tile = TIlePositonable, render = Renderable }
-function TileRenderSystem:getEntitiesInViewport(viewport)
-  local entitiesToDraw = {}
-
-  local left = math.floor(viewport.x) - 1
-  local right = math.ceil(viewport.x + viewport.w)
-  local up = math.floor(viewport.y) - 1
-  local down = math.ceil(viewport.y + viewport.h)
-
-  for x = left, right do
-    for y = up, down do
-      if self.tiles[x] and self.tiles[x][y] then
-        for _, entity in ipairs(self.tiles[x][y]) do
-          local pos, renderable = self.world:getEntityComponents(
-            entity, geometry.TilePositionable.TYPE, Renderable.TYPE
-          )
-          entitiesToDraw[#entitiesToDraw+1] = {
-            entity = entity,
-            tile = pos,
-            render = renderable
-          }
-        end
-      end
-    end
-  end
-
-  return entitiesToDraw
 end
 
 --------------------------------------------------------------------------------
@@ -331,7 +356,7 @@ end
 -- @param canvas
 -- @param viewport
 function TileRenderSystem:render(canvas, viewport)
-  local entitiesToDraw = self:getEntitiesInViewport(viewport)
+  local entitiesToDraw = self.index:getEntitiesInViewport(self.world, viewport)
 
   if #entitiesToDraw > 0 then
     table.sort(entitiesToDraw, compareTilesLayer)

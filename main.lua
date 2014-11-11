@@ -32,7 +32,7 @@ function love.load()
   local ast = parser.parseDir('src/')
   seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
   map = overworld.generateOverworld(seg.overworld)
-  map:toEntities(world, tileRenderSystem)
+  map:toEntities(world, tileRenderSystem.index)
 
   gui.createButton(
     world,
