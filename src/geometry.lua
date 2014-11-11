@@ -25,6 +25,27 @@ function Positionable:new(x, y)
 end
 
 --------------------------------------------------------------------------------
+--- A component that have a dimension
+local Dimensionable = {
+  TYPE = "dimensionable"
+}
+
+--------------------------------------------------------------------------------
+--- Create a component that have a dimension
+--
+-- @param width
+-- @param height
+--
+-- @return A new dimensionable component
+function Dimensionable:new(width, height)
+  return {
+    type = self.TYPE,
+    width = width,
+    height = height
+  }
+end
+
+--------------------------------------------------------------------------------
 --- Constant defining our tile space
 local TileSize = 40
 
@@ -79,6 +100,7 @@ end
 
 return {
   Positionable = Positionable,
+  Dimensionable = Dimensionable,
   TilePositionable = TilePositionable,
   TileDimensionable = TileDimensionable,
   TileSize = TileSize

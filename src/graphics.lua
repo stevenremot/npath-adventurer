@@ -46,6 +46,14 @@ function Canvas:new(options)
 end
 
 --------------------------------------------------------------------------------
+--- Set the font size
+--
+-- @param size
+function Canvas:setFontSize(size)
+  love.graphics.setFont(love.graphics.newFont(size * self.ratio.y))
+end
+
+--------------------------------------------------------------------------------
 --- Convert a position in the canvas to a position in the screen
 --
 -- @param x
@@ -55,7 +63,7 @@ end
 function Canvas:canvasToScreen(x, y)
   local offset = self.offset
   return (x + offset.x) * self.ratio.x,
-  (y + offset.y) * self.ratio.y
+    (y + offset.y) * self.ratio.y
 end
 
 --------------------------------------------------------------------------------
@@ -79,22 +87,29 @@ end
 --- Draw text on the screen
 --
 -- @param options.text
--- @param options.color {r, g, b[, a]}
+-- @param options.color  {r, g, b }
 -- @param options.x
 -- @param options.y
--- @param options.width Optional, the width of the box containing the text.
---                      The text will be wrapped to fit in it.
+-- @param options.size
+-- @param options.width  Optional, the width of the box containing the text.
+--                       The text will be wrapped to fit in it.
+-- @param options.anchor "left", "center" or "right"
+--
+-- @return self
 function Canvas:drawText(options)
   local color = options.color
-  love.graphics.setColor(color.r, color.g, color.b, color.a)
+  love.graphics.setColor(color.r, color.g, color.b)
   local x, y = self:canvasToScreen(options.x, options.y)
 
+  self:setFontSize(size or 20)
   if options.width then
     local screenWidth = options.width * self.ratio.x
-    love.graphics.printf(options.text, x, y, screenWidth)
+    love.graphics.printf(options.text, x, y, screenWidth, options.anchor or "left")
   else
     love.graphics.print(options.text, x, y)
   end
+
+  return self
 end
 
 --------------------------------------------------------------------------------
@@ -103,9 +118,42 @@ end
 -- @param options.image
 -- @param options.x
 -- @param options.y
+--
+-- @return self
 function Canvas:drawImage(options)
   local x, y = self:canvasToScreen(options.x, options.y)
   love.graphics.draw(options.image, x, y, 0, self.ratio.x, self.ratio.y)
+  return self
+end
+
+--------------------------------------------------------------------------------
+--- Draw a rectangle on the screen
+--
+-- @param options.x
+-- @param options.y
+-- @param options.width
+-- @param options.height
+-- @param options.fillColor [optional]
+-- @param options.strokeColor [optional]
+--
+-- @return self
+function Canvas:drawRectangle(options)
+  local x, y = self:canvasToScreen(options.x, options.y)
+  local w, h = options.width * self.ratio.x, options.height * self.ratio.y
+
+  if options.fillColor then
+    local color = options.fillColor
+    love.graphics.setColor(color.r, color.g, color.b)
+    love.graphics.rectangle("fill", x, y, w, h)
+  end
+
+  if options.strokeColor then
+    local color = options.strokeColor
+    love.graphics.setColor(color.r, color.g, color.b)
+    love.graphics.rectangle("line", x, y, w, h)
+  end
+
+  return self
 end
 
 MetaCanvas.__index = Canvas
