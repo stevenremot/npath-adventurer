@@ -7,7 +7,9 @@ local assets   = require('src.assets')
 local segmentation = require('src.generation.segmentation')
 local overworld = require('src.generation.overworld')
 local gui      = require('src.gui')
-local sprite = require('src.sprite')
+local character = require('src.game.character')
+local player = require('src.game.player')
+local movement = require('src.movement')
 
 local world = ecs.World:new()
 local canvas = graphics.base.Canvas:new{
@@ -21,21 +23,21 @@ local canvas = graphics.base.Canvas:new{
   }
 }
 local viewport = graphics.tile.Viewport:new(0, 0, 20, 15)
-viewportSpeed = { x = 0, y = 0, value = 5 }
 
 local guiSystem = gui.System:new(world)
 local tileRenderSystem = graphics.tile.TileRenderSystem:new(world)
-
-local gummySprite = nil
+local mapWidth, mapHeight = 0, 0
 
 function love.load()
   canvas:setFontSize(20)
   assets.loadSprites()
 
   local ast = parser.parseDir('src/')
-  seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
-  map = overworld.generateOverworld(seg.overworld, world, tileRenderSystem.index)
+  local seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
+  local map = overworld.generateOverworld(seg.overworld, world, tileRenderSystem.index)
   map:toEntities(world, tileRenderSystem.index)
+  mapWidth, mapHeight =
+    #map.tiles, #map.tiles[1]
 
   gui.createButton(
     world,
@@ -48,30 +50,9 @@ function love.load()
       strokeColor = { r = 255, g = 255, b = 255 }
     }
   )
-  gummySprite = assets.createSprite('gummy')
 
-  local gummy = world:createEntity()
-  local pos = geometry.TilePositionable:new(10, 10, 0, 1)
-  world:addComponent(
-    gummy,
-    pos
-  )
-  world:addComponent(
-    gummy,
-    geometry.TileDimensionable:new(40, 80)
-  )
-  world:addComponent(
-    gummy,
-    graphics.base.Renderable:new(function (canvas)
-        canvas:drawImage{
-          image = gummySprite,
-          x = 0,
-          y = 0
-        }
-    end)
-  )
-  tileRenderSystem.index:register(gummy, pos)
-
+  local gummy = character.createCharacter(world, "gummy", 10, 10, 0, tileRenderSystem.index)
+  world:addComponent(gummy, player.Player:new())
 end
 
 function love.draw()
@@ -86,21 +67,8 @@ function love.draw()
 end
 
 function love.keypressed(key)
-  local v = viewportSpeed.value
-  if key == "down" then
-    viewportSpeed.y = math.min(v, viewportSpeed.y + v)
-    gummySprite:setAnimation(1)
-  elseif key == "up" then
-    viewportSpeed.y = math.max(-v, viewportSpeed.y - v)
-    gummySprite:setAnimation(4)
-  elseif key == "left" then
-    viewportSpeed.x = math.max(-v, viewportSpeed.x - v)
-    gummySprite:setAnimation(3)
-  elseif key == "right" then
-    viewportSpeed.x = math.min(v, viewportSpeed.x + v)
-    gummySprite:setAnimation(2)
-  end
   guiSystem:onKeyDown(key)
+  player.onKeyDown(world, key)
 end
 
 function love.mousepressed(x, y)
@@ -108,25 +76,12 @@ function love.mousepressed(x, y)
 end
 
 function love.keyreleased(key)
-  local v = viewportSpeed.value
-  if key == "down" then
-    viewportSpeed.y = math.max(-v, viewportSpeed.y - v)
-  elseif key == "up" then
-    viewportSpeed.y = math.min(v, viewportSpeed.y + v)
-  elseif key == "left" then
-    viewportSpeed.x = math.min(v, viewportSpeed.x + v)
-  elseif key == "right" then
-    viewportSpeed.x = math.max(-v, viewportSpeed.x - v)
-  end
+  player.onKeyUp(world, key)
 end
 
 local mouseX, mouseY = 0, 0
-local increment = 0
-local delay = 1 / 10
 
 function love.update(dt)
-  viewport:translate(viewportSpeed.x * dt, viewportSpeed.y * dt)
-
   local x, y = love.mouse.getPosition()
 
   if x ~= mouseX or y ~= mouseY then
@@ -134,9 +89,11 @@ function love.update(dt)
     mouseX, mouseY = x, y
   end
 
-  increment = increment + dt
-  while increment > delay do
-    increment = increment - delay
-    gummySprite:nextStep()
-  end
+  graphics.sprite.updateSprites(world, dt, 1 / 10)
+  movement.updateTileMovable(world, dt, tileRenderSystem.index)
+  player.centerViewport(world, viewport)
+  viewport:restrainToRectangle(
+    1, 1,
+    mapWidth, mapHeight
+  )
 end

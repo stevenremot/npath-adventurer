@@ -38,6 +38,29 @@ function Viewport:translate(dx, dy)
   self.y = self.y + dy
 end
 
+--------------------------------------------------------------------------------
+--- Place the viewport so that its center is on the provided point
+--
+-- @param x
+-- @param y
+function Viewport:centerOn(x, y)
+  self.x = x - self.w / 2
+  self.y = y - self.h / 2
+end
+
+--------------------------------------------------------------------------------
+--- Displace the viewport so that is fits in a certain rectangle
+--
+--
+-- @param x
+-- @param y
+-- @param width
+-- @param height
+function Viewport:restrainToRectangle(x, y, width, height)
+  self.x = math.max(x, math.min(self.x, x + width - self.w))
+  self.y = math.max(y, math.min(self.y, y + height - self.h))
+end
+
 MetaViewport.__index = Viewport
 
 --------------------------------------------------------------------------------
@@ -66,6 +89,19 @@ function TileIndex:register(entity, pos)
   local x, y = pos.x, pos.y
 
   self:indexEntity(entity, math.floor(x), math.floor(y))
+
+  local index = self
+  pos.setX = function (self, x)
+    index:removeEntity(entity, math.floor(self.x), math.floor(self.y))
+    self.x = x
+    index:indexEntity(entity, math.floor(self.x), math.floor(self.y))
+  end
+
+  pos.setY = function (self, y)
+    index:removeEntity(entity, math.floor(self.y), math.floor(self.y))
+    self.y = y
+    index:indexEntity(entity, math.floor(self.y), math.floor(self.y))
+  end
 end
 
 --------------------------------------------------------------------------------
@@ -80,11 +116,24 @@ function TileIndex:indexEntity(entity, x, y)
   end
 
   if not self.index[x][y] then
-    self.index[x][y] = { entity }
-  else
-    local i = self.index[x][y]
-    i[#i+1] = entity
+    self.index[x][y] = {}
   end
+
+  self.index[x][y][entity] = true
+end
+
+--------------------------------------------------------------------------------
+--- Remove an entity from the index
+function TileIndex:removeEntity(entity, x, y)
+  if not self.index[x] then
+    self.index[x] = {}
+  end
+
+  if not self.index[x][y] then
+    self.index[x][y] = {}
+  end
+
+  self.index[x][y][entity] = nil
 end
 
 --------------------------------------------------------------------------------
@@ -106,7 +155,7 @@ function TileIndex:getEntitiesInViewport(world, viewport)
     if self.index[x] then
       for y = up, down do
         if self.index[x][y] then
-          for _, entity in ipairs(self.index[x][y]) do
+          for entity, _ in pairs(self.index[x][y]) do
             local pos, renderable = world:getEntityComponents(
               entity, geometry.TilePositionable.TYPE, base.Renderable.TYPE
             )
@@ -122,6 +171,21 @@ function TileIndex:getEntitiesInViewport(world, viewport)
   end
 
   return entitiesToDraw
+end
+
+--------------------------------------------------------------------------------
+--- Return all the entities at x, y
+function TileIndex:getEntitiesAtPoint(x, y)
+  x, y = math.floor(x), math.floor(y)
+  if not self.index[x] or not self.index[x][y] then
+    return {}
+  else
+    local t = {}
+    for entity, _ in pairs(self.index[x][y]) do
+      t[#t+1] = entity
+    end
+    return t
+  end
 end
 
 MetaTileIndex.__index = TileIndex

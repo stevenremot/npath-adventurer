@@ -8,8 +8,8 @@ local models = require('src.generation.models')
 --------------------------------------------------------------------------------
 --- The overworld is a rectangle with the given size (in tile units)
 local OverworldSize = {
-  w = 30,
-  h = 30
+  w = 100,
+  h = 100
 }
 
 --------------------------------------------------------------------------------

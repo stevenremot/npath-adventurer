@@ -5,7 +5,7 @@
 
 local geometry = require('src.geometry')
 local graphics = require('src.graphics.base')
-local sprite   = require('src.sprite')
+local sprite   = require('src.graphics.sprite')
 
 --------------------------------------------------------------------------------
 local loadedAssets = {
