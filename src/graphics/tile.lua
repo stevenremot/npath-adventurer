@@ -38,6 +38,16 @@ function Viewport:translate(dx, dy)
   self.y = self.y + dy
 end
 
+--------------------------------------------------------------------------------
+--- Place the viewport so that its center is on the provided point
+--
+-- @param x
+-- @param y
+function Viewport:centerOn(x, y)
+  self.x = x - self.w / 2
+  self.y = y - self.h / 2
+end
+
 MetaViewport.__index = Viewport
 
 --------------------------------------------------------------------------------
@@ -74,10 +84,10 @@ function TileIndex:register(entity, pos)
     index:indexEntity(entity, math.floor(self.x), math.floor(self.y))
   end
 
-  pos.setY = function (self, x)
-    index:removeEntity(entity, math.floor(self.x), math.floor(self.y))
+  pos.setY = function (self, y)
+    index:removeEntity(entity, math.floor(self.y), math.floor(self.y))
     self.y = y
-    index:indexEntity(entity, math.floor(self.x), math.floor(self.y))
+    index:indexEntity(entity, math.floor(self.y), math.floor(self.y))
   end
 end
 

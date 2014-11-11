@@ -65,16 +65,6 @@ function love.draw()
 end
 
 function love.keypressed(key)
-  local v = viewportSpeed.value
-  if key == "down" then
-    viewportSpeed.y = math.min(v, viewportSpeed.y + v)
-  elseif key == "up" then
-    viewportSpeed.y = math.max(-v, viewportSpeed.y - v)
-  elseif key == "left" then
-    viewportSpeed.x = math.max(-v, viewportSpeed.x - v)
-  elseif key == "right" then
-    viewportSpeed.x = math.min(v, viewportSpeed.x + v)
-  end
   guiSystem:onKeyDown(key)
   player.onKeyDown(world, key)
 end
@@ -84,24 +74,12 @@ function love.mousepressed(x, y)
 end
 
 function love.keyreleased(key)
-  local v = viewportSpeed.value
-  if key == "down" then
-    viewportSpeed.y = math.max(-v, viewportSpeed.y - v)
-  elseif key == "up" then
-    viewportSpeed.y = math.min(v, viewportSpeed.y + v)
-  elseif key == "left" then
-    viewportSpeed.x = math.min(v, viewportSpeed.x + v)
-  elseif key == "right" then
-    viewportSpeed.x = math.max(-v, viewportSpeed.x - v)
-  end
   player.onKeyUp(world, key)
 end
 
 local mouseX, mouseY = 0, 0
 
 function love.update(dt)
-  viewport:translate(viewportSpeed.x * dt, viewportSpeed.y * dt)
-
   local x, y = love.mouse.getPosition()
 
   if x ~= mouseX or y ~= mouseY then
@@ -111,4 +89,5 @@ function love.update(dt)
 
   graphics.sprite.updateSprites(world, dt, 1 / 10)
   movement.updateTileMovable(world, dt)
+  player.centerViewport(world, viewport)
 end

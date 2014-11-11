@@ -3,6 +3,7 @@
 local character = require('src.game.character')
 local sprite = require('src.graphics.sprite')
 local movement = require('src.movement')
+local geometry = require('src.geometry')
 
 --------------------------------------------------------------------------------
 --- Component to tag an entity as the player
@@ -65,8 +66,21 @@ local function onKeyUp(world, key)
   end
 end
 
+--------------------------------------------------------------------------------
+--- Center the viewport on the player
+--
+-- @param world    The ECS world
+-- @param viewport
+local function centerViewport(world, viewport)
+  for entity, _ in world:getEntitiesWithComponent(Player.TYPE) do
+    local pos = world:getEntityComponents(entity, geometry.TilePositionable.TYPE)
+    viewport:centerOn(pos.x, pos.y)
+  end
+end
+
 return {
   Player = Player,
   onKeyDown = onKeyDown,
-  onKeyUp = onKeyUp
+  onKeyUp = onKeyUp,
+  centerViewport = centerViewport
 }
