@@ -8,7 +8,6 @@ local segmentation = require('src.generation.segmentation')
 local overworld = require('src.generation.overworld')
 local gui      = require('src.gui')
 local character = require('src.game.character')
-local sprite = require('src.sprite')
 local player = require('src.game.player')
 
 local world = ecs.World:new()
@@ -109,5 +108,5 @@ function love.update(dt)
     mouseX, mouseY = x, y
   end
 
-  sprite.updateSprites(world, dt, 1 / 10)
+  graphics.sprite.updateSprites(world, dt, 1 / 10)
 end

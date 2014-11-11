@@ -1,7 +1,7 @@
 -- player.Lua
 -- Objects related to the main character
 local character = require('src.game.character')
-local sprite = require('src.sprite')
+local sprite = require('src.graphics.sprite')
 
 --------------------------------------------------------------------------------
 --- Component to tag an entity as the player

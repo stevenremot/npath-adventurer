@@ -4,7 +4,7 @@
 local assets = require('src.assets')
 local geometry = require('src.geometry')
 local graphics = require('src.graphics.base')
-local sprite = require('src.sprite')
+local sprite = require('src.graphics.sprite')
 
 local CHARACTER_WIDTH, CHARACTER_HEIGHT = 40, 80
 
