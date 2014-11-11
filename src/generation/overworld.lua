@@ -8,8 +8,8 @@ local models = require('src.generation.models')
 --------------------------------------------------------------------------------
 --- The overworld is a rectangle with the given size (in tile units)
 local OverworldSize = {
-  w = 100,
-  h = 100
+  w = 200,
+  h = 200
 }
 
 --------------------------------------------------------------------------------
@@ -111,16 +111,16 @@ local function createTransitions(biomes, biomeTiles)
   -- vertical transitions
   for j = 1, OverworldSize.h do
     for i = 1, OverworldSize.w-1 do
-      biome1 = biomeTiles[i][j]
-      biome2 = biomeTiles[i+1][j]
+      local biome1, biome2 = biomeTiles[i][j], biomeTiles[i+1][j]
+      local z1, z2 = biomes[biome1].z, biomes[biome2].z
       if biome1 ~= biome2 then
-        if biomes[biome1].z ~= biomes[biome2].z then
+        if z1 ~= z2 then
           local t = getTransition(transitions, biome1, biome2)
           local s = models.TransitionSegment:new(
             {i+1, j},
             {i+1, j+1},
-            biome1,
-            biome2
+            z1,
+            z2
           )
           t:addSegment(s)
         end
@@ -131,16 +131,16 @@ local function createTransitions(biomes, biomeTiles)
   -- horizontal transitions
   for i = 1, OverworldSize.w do
     for j = 1, OverworldSize.h-1 do
-      biome1 = biomeTiles[i][j]
-      biome2 = biomeTiles[i][j+1]
+      local biome1, biome2 = biomeTiles[i][j], biomeTiles[i][j+1]
+      local z1, z2 = biomes[biome1].z, biomes[biome2].z
       if biome1 ~= biome2 then
-        if biomes[biome1].z ~= biomes[biome2].z then
+        if z1 ~= z2 then
           local t = getTransition(transitions, biome1, biome2)
           local s = models.TransitionSegment:new(
             {i, j+1},
             {i+1, j+1},
-            biome1,
-            biome2
+            z1,
+            z2
           )
           t:addSegment(s)
         end
@@ -165,7 +165,7 @@ end
 -- @return "overworld" world.Map
 local function generateOverworld(codespaces, ecsWorld, tileIndex)
   -- fixed seed for testing purposes
-  local rng = random.Rng:new(1)
+  local rng = random.Rng:new(os.time())
 
   local biomes = initBiomes(codespaces, rng)
 

@@ -263,6 +263,9 @@ function TransitionSegment:createEntities(world, tileIndex)
       local x = self.startPoint[1] + dx
       local y = self.startPoint[2] - 1
       assets.createTileEntity(world, tileIndex, borderImage, x, y, self.z1, 1)
+      for dz = 1, heightDiff do
+        assets.createTileEntity(world, tileIndex, wallImage, x, y+dz, self.z2, 1)
+      end
     end
   end
 end
@@ -303,7 +306,6 @@ end
 --- Create ecs entities
 -- @param world Ecs world
 function Transition:createEntities(world, tileIndex)
-  print(#self.segments, self.segments[1]:getLength())  
   for _, s in ipairs(self.segments) do
     s:createEntities(world, tileIndex)
   end
