@@ -10,7 +10,7 @@ local gui      = require('src.gui')
 local sprite = require('src.sprite')
 
 local world = ecs.World:new()
-local canvas = graphics.Canvas:new{
+local canvas = graphics.base.Canvas:new{
   screen = {
     width = love.graphics.getWidth(),
     height = love.graphics.getHeight()
@@ -20,11 +20,11 @@ local canvas = graphics.Canvas:new{
     height = 600
   }
 }
-local viewport = graphics.Viewport:new(0, 0, 20, 15)
+local viewport = graphics.tile.Viewport:new(0, 0, 20, 15)
 viewportSpeed = { x = 0, y = 0, value = 5 }
 
 local guiSystem = gui.System:new(world)
-local tileRenderSystem = graphics.TileRenderSystem:new(world)
+local tileRenderSystem = graphics.tile.TileRenderSystem:new(world)
 
 local gummySprite = sprite.Sprite:new(
   assets.loadSprite(
@@ -66,7 +66,7 @@ function love.load()
   )
   world:addComponent(
     gummy,
-    graphics.Renderable:new(function (canvas)
+    graphics.base.Renderable:new(function (canvas)
         canvas:drawImage{
           image = gummySprite,
           x = 0,

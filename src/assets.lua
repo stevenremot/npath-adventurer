@@ -4,7 +4,7 @@
 --------------------------------------------------------------------------------
 
 local geometry = require('src.geometry')
-local graphics = require('src.graphics')
+local graphics = require('src.graphics.base')
 local sprite   = require('src.sprite')
 
 --------------------------------------------------------------------------------
