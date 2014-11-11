@@ -101,7 +101,7 @@ function Canvas:drawText(options)
   love.graphics.setColor(color.r, color.g, color.b)
   local x, y = self:canvasToScreen(options.x, options.y)
 
-  self:setFontSize(size or 20)
+  self:setFontSize(options.size or 20)
   if options.width then
     local screenWidth = options.width * self.ratio.x
     love.graphics.printf(options.text, x, y, screenWidth, options.anchor or "left")
@@ -245,35 +245,93 @@ local function compareTilesLayer(a, b)
 end
 
 --------------------------------------------------------------------------------
---- Render the tilepositionable entities on a canvas
---- This should be used to render game elements
+--- System for rendering tile
+local TileRenderSystem = {}
+local MetaTileRenderSystem = {}
+
+--------------------------------------------------------------------------------
+--- Create a new tile render system
 --
--- @param world  ECS world
--- @param canvas Canvas to draw one
--- @param viewport Viewport
-local function tilerender(world, canvas, viewport)
+-- @param world Ecs world
+--
+-- @param world The ECS World
+function TileRenderSystem:new(world)
+  local system = {
+    world = world,
+    tiles = {},
+    indexedEntities = {}
+  }
+  setmetatable(system, MetaTileRenderSystem)
+  return system
+end
+
+--------------------------------------------------------------------------------
+--- Index a tile by its position
+--
+-- @param entity
+-- @param position The TIlePositionable component
+function TileRenderSystem:indexTile(entity, position)
+  local x, y = math.floor(position.x), math.floor(position.y)
+  self.indexedEntities[entity] = { x, y }
+
+  if not self.tiles[x] then self.tiles[x] = {} end
+  if not self.tiles[x][y] then self.tiles[x][y] = {} end
+
+  local t = self.tiles[x][y]
+  t[#t+1] = entity
+end
+
+--------------------------------------------------------------------------------
+--- Return true if this tile is indexed, false otherwise
+--
+-- @param entity
+--
+-- @return boolean
+function TileRenderSystem:hasIndexedTile(entity)
+  return self.indexedEntities[entity] ~= nil
+end
+
+--------------------------------------------------------------------------------
+--- Get entities to draw on viewport
+--
+-- @param viewport
+--
+-- @return A list of { entity = entity, tile = TIlePositonable, render = Renderable }
+function TileRenderSystem:getEntitiesInViewport(viewport)
   local entitiesToDraw = {}
 
-  for entity, renderable in world:getEntitiesWithComponent(Renderable.TYPE) do
-    local pos, size = world:getEntityComponents(
-      entity,
-      geometry.TilePositionable.TYPE,
-      geometry.TileDimensionable.TYPE
-    )
+  local left = math.floor(viewport.x) - 1
+  local right = math.ceil(viewport.x + viewport.w)
+  local up = math.floor(viewport.y) - 1
+  local down = math.ceil(viewport.y + viewport.h)
 
-    if pos then
-      local x, y = pos.x, pos.y
-      local w, h = geometry.TileSize, geometry.TileSize
-
-      if size then
-        w, h = size.w, size.h
-      end
-
-      if viewport:intersects(x, y, w, h) then
-        entitiesToDraw[#entitiesToDraw+1] =  { tile = pos, render = renderable }
+  for x = left, right do
+    for y = up, down do
+      if self.tiles[x] and self.tiles[x][y] then
+        for _, entity in ipairs(self.tiles[x][y]) do
+          local pos, renderable = self.world:getEntityComponents(
+            entity, geometry.TilePositionable.TYPE, Renderable.TYPE
+          )
+          entitiesToDraw[#entitiesToDraw+1] = {
+            entity = entity,
+            tile = pos,
+            render = renderable
+          }
+        end
       end
     end
   end
+
+  return entitiesToDraw
+end
+
+--------------------------------------------------------------------------------
+--- Draw entities on the canvas for a certain viewport
+--
+-- @param canvas
+-- @param viewport
+function TileRenderSystem:render(canvas, viewport)
+  local entitiesToDraw = self:getEntitiesInViewport(viewport)
 
   if #entitiesToDraw > 0 then
     table.sort(entitiesToDraw, compareTilesLayer)
@@ -283,14 +341,14 @@ local function tilerender(world, canvas, viewport)
       e.render.draw(canvas:translate(x, y))
     end
   end
-
 end
 
+MetaTileRenderSystem.__index = TileRenderSystem
 
 return {
   Canvas = Canvas,
   Renderable = Renderable,
   render = render,
-  tilerender = tilerender,
+  TileRenderSystem = TileRenderSystem,
   Viewport = Viewport
 }

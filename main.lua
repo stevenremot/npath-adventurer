@@ -25,6 +25,7 @@ local viewport = graphics.Viewport:new(0, 0, 20, 15)
 viewportSpeed = { x = 0, y = 0, value = 5 }
 
 local guiSystem = gui.System:new(world)
+local tileRenderSystem = graphics.TileRenderSystem:new(world)
 
 function love.load()
   canvas:setFontSize(20)
@@ -32,24 +33,7 @@ function love.load()
   local ast = parser.parseDir('src/')
   seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
   map = overworld.generateOverworld(seg.overworld)
-  map:toEntities(world)
-
-  local entity = world:createEntity()
-  world:addComponent(
-    entity,
-    graphics.Renderable:new(
-      function (canvas)
-        canvas:translate(100, 100):
-        drawText{
-          text = seg.overworld[1]:toString(),
-          color = { r = 255, g = 255, b = 255 },
-          x = 10, y = 10,
-          width = 600,
-          anchor = "justify"
-        }
-      end
-    )
-  )
+  map:toEntities(world, tileRenderSystem)
 
   gui.createButton(
     world,
@@ -67,8 +51,8 @@ function love.load()
 end
 
 function love.draw()
-  graphics.tilerender(world, canvas, viewport)
-  -- graphics.render(world, canvas)
+  -- graphics.tilerender(world, canvas, viewport)
+  tileRenderSystem:render(canvas, viewport)
   guiSystem:render(canvas)
 
   love.graphics.print(
