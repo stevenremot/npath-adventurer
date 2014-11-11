@@ -6,7 +6,6 @@ local geometry = require('src.geometry')
 local assets   = require('src.assets')
 local segmentation = require('src.generation.segmentation')
 local overworld = require('src.generation.overworld')
-local random = require('src.generation.random')
 
 local world = ecs.World:new()
 local canvas = graphics.Canvas:new{
@@ -23,8 +22,6 @@ local viewport = graphics.Viewport:new(0, 0, 20, 15)
 viewportSpeed = { x = 0, y = 0, value = 5 }
 
 function love.load()
-  
-  random.test()
   
   local ast = parser.parseDir('src/')
   seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })  
@@ -65,15 +62,6 @@ function love.load()
     smile,
     geometry.Positionable:new(50, 50)
   )
-
-  --[[for i = 0, 19 do
-    for j = 0, 14 do
-      if ((i+j) % 2 == 0) then
-        assets.createTileEntity(world, 'assets/images/plain.png', i, j)
-      else 
-        assets.createTileEntity(world, 'assets/images/rock.png', i, j) end
-      end
-    end]]
 
   end
 
