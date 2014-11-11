@@ -39,6 +39,40 @@ local function createCharacter(world, spriteName, x, y, z, tileIndex)
   return character
 end
 
+local SPRITE_LAYERS = {
+  LEFT = 3,
+  RIGHT = 2,
+  UP = 4,
+  DOWN = 1
+}
+
+--------------------------------------------------------------------------------
+--- Movement functions for a character
+local function moveLeft(sprite)
+  sprite.animating = true
+  sprite:setAnimation(SPRITE_LAYERS.LEFT)
+end
+local function moveRight(sprite)
+  sprite.animating = true
+  sprite:setAnimation(SPRITE_LAYERS.RIGHT)
+end
+local function moveUp(sprite)
+  sprite.animating = true
+  sprite:setAnimation(SPRITE_LAYERS.UP)
+end
+local function moveDown(sprite)
+  sprite.animating = true
+  sprite:setAnimation(SPRITE_LAYERS.DOWN)
+end
+local function stop(sprite)
+  sprite.animating = false
+end
+
 return {
-  createCharacter = createCharacter
+  createCharacter = createCharacter,
+  moveLeft = moveLeft,
+  moveRight = moveRight,
+  moveUp = moveUp,
+  moveDown = moveDown,
+  stop = stop
 }

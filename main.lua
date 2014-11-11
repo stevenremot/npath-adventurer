@@ -9,6 +9,7 @@ local overworld = require('src.generation.overworld')
 local gui      = require('src.gui')
 local character = require('src.game.character')
 local sprite = require('src.sprite')
+local player = require('src.game.player')
 
 local world = ecs.World:new()
 local canvas = graphics.base.Canvas:new{
@@ -48,7 +49,8 @@ function love.load()
     }
   )
 
-  character.createCharacter(world, "gummy", 10, 10, 0, tileRenderSystem.index)
+  local gummy = character.createCharacter(world, "gummy", 10, 10, 0, tileRenderSystem.index)
+  world:addComponent(gummy, player.Player:new())
 end
 
 function love.draw()
@@ -74,6 +76,7 @@ function love.keypressed(key)
     viewportSpeed.x = math.min(v, viewportSpeed.x + v)
   end
   guiSystem:onKeyDown(key)
+  player.onKeyDown(world, key)
 end
 
 function love.mousepressed(x, y)
@@ -91,6 +94,7 @@ function love.keyreleased(key)
   elseif key == "right" then
     viewportSpeed.x = math.max(-v, viewportSpeed.x - v)
   end
+  player.onKeyUp(world, key)
 end
 
 local mouseX, mouseY = 0, 0
