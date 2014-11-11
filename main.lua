@@ -49,6 +49,7 @@ function love.load()
     }
   )
   gummySprite = assets.createSprite('gummy')
+  gummySprite.animating = true
 
   local gummy = world:createEntity()
   local pos = geometry.TilePositionable:new(10, 10, 0, 1)
@@ -69,6 +70,10 @@ function love.load()
           y = 0
         }
     end)
+  )
+  world:addComponent(
+    gummy,
+    sprite.SpriteComponent:new(gummySprite)
   )
   tileRenderSystem.index:register(gummy, pos)
 
@@ -121,8 +126,6 @@ function love.keyreleased(key)
 end
 
 local mouseX, mouseY = 0, 0
-local increment = 0
-local delay = 1 / 10
 
 function love.update(dt)
   viewport:translate(viewportSpeed.x * dt, viewportSpeed.y * dt)
@@ -134,9 +137,5 @@ function love.update(dt)
     mouseX, mouseY = x, y
   end
 
-  increment = increment + dt
-  while increment > delay do
-    increment = increment - delay
-    gummySprite:nextStep()
-  end
+  sprite.updateSprites(world, dt, 1 / 10)
 end

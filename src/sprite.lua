@@ -56,7 +56,8 @@ function Sprite:new(resource)
     image = resource.image,
     quad = resource.anims[1][1],
     currentAnim = 1,
-    currentStep = 1
+    currentStep = 1,
+    animating = false
   }
   setmetatable(sprite, MetaSprite)
   return sprite
@@ -80,7 +81,48 @@ end
 
 MetaSprite.__index = Sprite
 
+--------------------------------------------------------------------------------
+--- A simple component to tag entities that have  a sprite as renderable
+local SpriteComponent = {
+  TYPE = "sprite"
+}
+
+function SpriteComponent:new(sprite)
+  return {
+    type = self.TYPE,
+    sprite = sprite
+  }
+end
+
+local timeIncrement = 0
+--------------------------------------------------------------------------------
+--- Update all sprites in the world
+--
+-- @param world
+-- @param dt         In seconds
+-- @param frameDelay In seconds
+local function updateSprites(world, dt, frameDelay)
+  timeIncrement = timeIncrement + dt
+  local timeToUpdate = 0
+  while timeIncrement >= frameDelay do
+    timeIncrement = timeIncrement - frameDelay
+    timeToUpdate = timeToUpdate + 1
+  end
+
+  if timeToUpdate > 0 then
+    for entity, sprite in world:getEntitiesWithComponent(SpriteComponent.TYPE) do
+      if sprite.sprite.animating then
+        for i = 1, timeToUpdate do
+          sprite.sprite:nextStep()
+        end
+      end
+    end
+  end
+end
+
 return {
   SpriteResource = SpriteResource,
-  Sprite = Sprite
+  Sprite = Sprite,
+  SpriteComponent = SpriteComponent,
+  updateSprites = updateSprites
 }
