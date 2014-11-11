@@ -23,19 +23,21 @@ local canvas = graphics.base.Canvas:new{
   }
 }
 local viewport = graphics.tile.Viewport:new(0, 0, 20, 15)
-viewportSpeed = { x = 0, y = 0, value = 5 }
 
 local guiSystem = gui.System:new(world)
 local tileRenderSystem = graphics.tile.TileRenderSystem:new(world)
+local mapWidth, mapHeight = 0, 0
 
 function love.load()
   canvas:setFontSize(20)
   assets.loadSprites()
 
   local ast = parser.parseDir('src/')
-  seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
-  map = overworld.generateOverworld(seg.overworld)
+  local seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
+  local map = overworld.generateOverworld(seg.overworld)
   map:toEntities(world, tileRenderSystem.index)
+  mapWidth, mapHeight =
+    #map.tiles, #map.tiles[1]
 
   gui.createButton(
     world,
@@ -90,4 +92,8 @@ function love.update(dt)
   graphics.sprite.updateSprites(world, dt, 1 / 10)
   movement.updateTileMovable(world, dt)
   player.centerViewport(world, viewport)
+  viewport:restrainToRectangle(
+    1, 1,
+    mapWidth, mapHeight
+  )
 end

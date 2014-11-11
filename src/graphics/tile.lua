@@ -48,6 +48,19 @@ function Viewport:centerOn(x, y)
   self.y = y - self.h / 2
 end
 
+--------------------------------------------------------------------------------
+--- Displace the viewport so that is fits in a certain rectangle
+--
+--
+-- @param x
+-- @param y
+-- @param width
+-- @param height
+function Viewport:restrainToRectangle(x, y, width, height)
+  self.x = math.max(x, math.min(self.x, x + width - self.w))
+  self.y = math.max(y, math.min(self.y, y + height - self.h))
+end
+
 MetaViewport.__index = Viewport
 
 --------------------------------------------------------------------------------
@@ -112,6 +125,14 @@ end
 --------------------------------------------------------------------------------
 --- Remove an entity from the index
 function TileIndex:removeEntity(entity, x, y)
+  if not self.index[x] then
+    self.index[x] = {}
+  end
+
+  if not self.index[x][y] then
+    self.index[x][y] = {}
+  end
+
   self.index[x][y][entity] = nil
 end
 
