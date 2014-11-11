@@ -173,6 +173,21 @@ function TileIndex:getEntitiesInViewport(world, viewport)
   return entitiesToDraw
 end
 
+--------------------------------------------------------------------------------
+--- Return all the entities at x, y
+function TileIndex:getEntitiesAtPoint(x, y)
+  x, y = math.floor(x), math.floor(y)
+  if not self.index[x] or not self.index[x][y] then
+    return {}
+  else
+    local t = {}
+    for entity, _ in pairs(self.index[x][y]) do
+      t[#t+1] = entity
+    end
+    return t
+  end
+end
+
 MetaTileIndex.__index = TileIndex
 
 --------------------------------------------------------------------------------

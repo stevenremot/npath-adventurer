@@ -130,7 +130,8 @@ function Map:toEntities(ecsWorld, tileIndex)
         'assets/images/' .. tile.type .. '.png',
         i,
         j,
-        tile.altitude
+        tile.altitude,
+        0
       )
       table.insert(entities, entity)
     end

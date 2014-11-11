@@ -90,7 +90,7 @@ function love.update(dt)
   end
 
   graphics.sprite.updateSprites(world, dt, 1 / 10)
-  movement.updateTileMovable(world, dt)
+  movement.updateTileMovable(world, dt, tileRenderSystem.index)
   player.centerViewport(world, viewport)
   viewport:restrainToRectangle(
     1, 1,

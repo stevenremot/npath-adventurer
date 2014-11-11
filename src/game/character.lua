@@ -7,8 +7,6 @@ local graphics = require('src.graphics.base')
 local sprite = require('src.graphics.sprite')
 local movement = require('src.movement')
 
-local CHARACTER_WIDTH, CHARACTER_HEIGHT = 40, 80
-
 --------------------------------------------------------------------------------
 --- Create a new character entity
 --
@@ -22,7 +20,7 @@ local function createCharacter(world, spriteName, x, y, z, tileIndex)
 
   local character = world:createEntity()
   local pos = geometry.TilePositionable:new(x, y, z, 2)
-  local dim = geometry.TileDimensionable:new(CHARACTER_WIDTH, CHARACTER_HEIGHT)
+  local dim = geometry.TileDimensionable:new(1, 2)
   local render = graphics.Renderable:new(
     function (canvas)
       canvas:drawImage{ image = spriteObj, x = 0, y = 0 }

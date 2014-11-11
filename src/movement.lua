@@ -19,16 +19,45 @@ function TileMovable:new()
 end
 
 --------------------------------------------------------------------------------
+--- Return true if the position is legal (aka is not underground)
+local function canMoveHere(x, y, z, world, tileIndex)
+  for _, entity in ipairs(tileIndex:getEntitiesAtPoint(x, y)) do
+    local pos = world:getEntityComponents(
+      entity,
+      geometry.TilePositionable.TYPE
+    )
+    if pos.layer == 0 then
+      return pos.z <= z
+    end
+  end
+  return false
+end
+
+--------------------------------------------------------------------------------
 --- Update movable components to set their new positions
 --
 -- Update tile index at the same time
 --
-function updateTileMovable(world, dt)
+local function updateTileMovable(world, dt, tileIndex)
   for entity, mov in world:getEntitiesWithComponent(TileMovable.TYPE) do
     if mov.x ~= 0 or mov.y ~= 0 then
-      local pos = world:getEntityComponents(entity, geometry.TilePositionable.TYPE)
-      pos:setX(pos.x + mov.x * dt)
-      pos:setY(pos.y + mov.y * dt)
+      local pos, size = world:getEntityComponents(
+        entity,
+        geometry.TilePositionable.TYPE, geometry.TileDimensionable.TYPE
+      )
+
+      local newX, newY = pos.x + mov.x * dt, pos.y + mov.y * dt
+
+      local checkX, checkY = newX, newY + size.h
+      if mov.x > 0 then
+        checkX = checkX + size.w
+      end
+
+
+      if canMoveHere(checkX, checkY, pos.z, world, tileIndex) then
+        pos:setX(newX)
+        pos:setY(newY)
+      end
     end
   end
 end
