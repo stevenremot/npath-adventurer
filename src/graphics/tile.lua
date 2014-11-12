@@ -197,7 +197,9 @@ MetaTileIndex.__index = TileIndex
 -- @param b
 local function compareTilesLayer(a, b)
   local az, bz = a.tile.z, b.tile.z
-  return az < bz or (az == bz and  a.tile.layer < b.tile.layer)
+  local ay, by = a.tile.y, b.tile.y
+  local al, bl = a.tile.layer, b.tile.layer
+  return az < bz or (az == bz and  al < bl or (al == bl and ay < by))
 end
 
 --------------------------------------------------------------------------------

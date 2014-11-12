@@ -19,7 +19,7 @@ function TileMovable:new()
 end
 
 --------------------------------------------------------------------------------
---- Return true if the position is legal (aka is not underground)
+--- Return the ground height at x, y, or nil if there is no ground
 local function getGroundHeight(x, y, world, tileIndex)
   for _, entity in ipairs(tileIndex:getEntitiesAtPoint(x, y)) do
     local pos = world:getEntityComponents(
@@ -80,5 +80,6 @@ end
 
 return {
   TileMovable = TileMovable,
-  updateTileMovable = updateTileMovable
+  updateTileMovable = updateTileMovable,
+  getGroundHeight = getGroundHeight
 }

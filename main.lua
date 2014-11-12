@@ -51,8 +51,18 @@ function love.load()
     }
   )
 
-  local gummy = character.createCharacter(world, "gummy", 10, 10, 0, tileRenderSystem.index)
+  local gummy = character.createCharacter(
+    world, "gummy",
+    10, 10,
+    tileRenderSystem.index
+  )
   world:addComponent(gummy, player.Player:new())
+
+  character.createCharacter(
+    world, "gummy",
+    15, 12,
+    tileRenderSystem.index
+  )
 end
 
 function love.draw()

@@ -15,8 +15,9 @@ local movement = require('src.movement')
 -- @param x
 -- @param y
 -- @param tileIndex
-local function createCharacter(world, spriteName, x, y, z, tileIndex)
+local function createCharacter(world, spriteName, x, y, tileIndex)
   local spriteObj = assets.createSprite(spriteName)
+  local z = movement.getGroundHeight(x, y, world, tileIndex)
 
   local character = world:createEntity()
   local pos = geometry.TilePositionable:new(x, y, z, 2)
