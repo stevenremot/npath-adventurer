@@ -88,7 +88,8 @@ local function loadSprites()
       name,
       spec.image,
       spec.width, spec.height,
-      spec.animNumber, spec.stepNumber
+      spec.animNumber, spec.stepNumber,
+      spec.offsetX or 0, spec.offsetY or 0
     )
   end
 end

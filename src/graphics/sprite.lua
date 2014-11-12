@@ -15,9 +15,11 @@ local SpriteResource = {}
 -- @param height
 -- @param animNumbers
 -- @param stepNumbers
+-- @param offsetX     [optional]
+-- @param offsetY     [optional]
 --
 -- @return A new sprite resource
-function SpriteResource:new(image, width, height, animNumbers, stepNumbers)
+function SpriteResource:new(image, width, height, animNumbers, stepNumbers, offsetX, offsetY)
   local anims = {}
   local imgW, imgH = image:getDimensions()
 
@@ -37,7 +39,11 @@ function SpriteResource:new(image, width, height, animNumbers, stepNumbers)
     image = image,
     anims = anims,
     width = width,
-    height = height
+    height = height,
+    offset = {
+      x = offsetX or 0,
+      y = offsetY or 0
+    }
   }
 end
 

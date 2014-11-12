@@ -124,7 +124,7 @@ function Canvas:drawImage(options)
     love.graphics.draw(
       options.image.image,
       options.image.quad,
-      x, y, 0,
+      x + options.image.resource.offset.x, y + options.image.resource.offset.y, 0,
       self.ratio.x, self.ratio.y
     )
   else
