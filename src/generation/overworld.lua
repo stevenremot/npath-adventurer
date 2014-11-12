@@ -3,13 +3,16 @@
 -- Creation of the overworld biomes based on the segmented codespaces
 local world = require('src.world')
 local random = require('src.generation.random')
-local models = require('src.generation.models')
+
+local Biome = require('src.generation.models.biome').Biome
+local Transition = require('src.generation.models.transition').Transition
+local TransitionSegment = require('src.generation.models.transition').TransitionSegment
 
 --------------------------------------------------------------------------------
 --- The overworld is a rectangle with the given size (in tile units)
 local OverworldSize = {
-  w = 200,
-  h = 200
+  w = 400,
+  h = 400
 }
 
 --------------------------------------------------------------------------------
@@ -25,8 +28,8 @@ local BiomeDistribution = {
 --- The available altitudes and their weights of apparition
 local AltitudeDistribution = {
   { 0, 5 },
-  { 1, 2 },
-  { 2, 1 }
+  { 2, 2 },
+  { 4, 1 } 
 }
 
 --------------------------------------------------------------------------------
@@ -73,7 +76,7 @@ local function initBiomes(codespaces, rng)
     local x = rng:randomf(_x - biomeSquareDims.w/4, _x + biomeSquareDims.w/4)
     local y = rng:randomf(_y - biomeSquareDims.h/4, _y + biomeSquareDims.h/4)
 
-    table.insert(biomes, models.Biome:new(
+    table.insert(biomes, Biome:new(
         b,
         {x = x, y = y},
         rng:randomDensityListElement(BiomeDistribution),
@@ -101,7 +104,7 @@ local function getTransition(transitions, biome1, biome2)
   if transitions[biome1] == nil then
     transitions[biome1] = {}
   end
-  transitions[biome1][biome2] = models.Transition:new(biome1, biome2)
+  transitions[biome1][biome2] = Transition:new(biome1, biome2)
   return transitions[biome1][biome2]
 end
 
@@ -116,7 +119,7 @@ local function createTransitions(biomes, biomeTiles)
       if biome1 ~= biome2 then
         if z1 ~= z2 then
           local t = getTransition(transitions, biome1, biome2)
-          local s = models.TransitionSegment:new(
+          local s = TransitionSegment:new(
             {i+1, j},
             {i+1, j+1},
             z1,
@@ -136,7 +139,7 @@ local function createTransitions(biomes, biomeTiles)
       if biome1 ~= biome2 then
         if z1 ~= z2 then
           local t = getTransition(transitions, biome1, biome2)
-          local s = models.TransitionSegment:new(
+          local s = TransitionSegment:new(
             {i, j+1},
             {i+1, j+1},
             z1,

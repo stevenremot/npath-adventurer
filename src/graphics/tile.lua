@@ -149,7 +149,7 @@ function TileIndex:getEntitiesInViewport(world, viewport)
   local left = math.floor(viewport.x) - 1
   local right = math.ceil(viewport.x + viewport.w)
   local up = math.floor(viewport.y) - 1
-  local down = math.ceil(viewport.y + viewport.h) + 2
+  local down = math.ceil(viewport.y + viewport.h) + 4
 
   for x = left, right do
     if self.index[x] then
