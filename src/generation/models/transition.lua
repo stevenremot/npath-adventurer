@@ -7,6 +7,14 @@ local function tileEquality(tile1, tile2)
   return tile1[1] == tile2[1] and tile1[2] == tile2[2]
 end
 
+local function tileSum(tile1, tile2)
+  return { tile1[1] + tile2[1], tile1[2] + tile2[2] }
+end
+
+local function tileSub(tile1, tile2)
+  return { tile1[1] - tile2[1], tile1[2] - tile2[2] }
+end
+
 --------------------------------------------------------------------------------
 --- A biome transition segment
 local TransitionSegment = {}
@@ -71,6 +79,36 @@ function TransitionSegment:getType()
   end
 end
 
+function TransitionSegment:getDirection()
+  if self.endPoint[1] == self.startPoint[1] then
+    return {0, 1}
+  elseif self.startPoint[2] == self.endPoint[2] then
+    return {1, 0}
+  else
+    print('invalid direction')
+    return nil
+  end       
+end
+
+function TransitionSegment:isOrthogonal(other)
+  local stype = self:getType()
+  local otype = other:getType()
+
+  if stype == 'leftright' or stype == 'rightleft' then
+    if otype == 'updown' or otype == 'downup' then
+      return true
+    end
+  end
+
+  if otype == 'leftright' or otype == 'rightleft' then
+    if stype == 'updown' or stype == 'downup' then
+      return true
+    end
+  end
+
+  return false
+end
+
 function TransitionSegment:createEntities(world, tileIndex)
   local type = self:getType()
   local heightDiff = math.abs(self.z1 - self.z2)
@@ -118,6 +156,12 @@ local TransitionCorner = {}
 local MetaTransitionCorner = {}
 
 function TransitionCorner:new(segment1, segment2)
+  local x1 = segment1.startPoint[1] + segment1.endPoint[1]
+  local x2 = segment2.startPoint[1] + segment2.endPoint[1]
+  if x1 > x2 then
+    segment2, segment1 = segment1, segment2
+  end
+
   local transitionCorner = {
     segment1 = segment1,
     segment2 = segment2
@@ -156,6 +200,44 @@ end
 
 MetaTransitionCorner.__index = TransitionCorner
 
+-- Attempt to connect another orthogonal TransitionSegment to self
+-- If a connection is possible, this segment will be amputed of its corner part
+local function hasCorner(seg, other)
+  if seg:isOrthogonal(other) then   
+    local altitudeCond = (seg.z1 == other.z1 and seg.z2 == other.z2)
+    altitudeCond = altitudeCond or (seg.z2 == other.z1 and seg.z1 == other.z2)
+    if altitudeCond then
+      local ss = tileEquality(seg.startPoint, other.startPoint)
+      local se = tileEquality(seg.startPoint, other.endPoint)
+      local ee = tileEquality(seg.endPoint, other.endPoint)
+      local es = tileEquality(seg.endPoint, other.startPoint)
+      local direction = seg:getDirection()
+      if ss or se then
+        local newStart = tileSum(seg.startPoint, direction)
+        newSeg = TransitionSegment:new(
+          seg.startPoint,
+          newStart,
+          seg.z1,
+          seg.z2
+        )
+        seg.startPoint = newStart
+        return TransitionCorner:new(newSeg, other)
+      elseif ee or es then
+        local newEnd = tileSub(seg.endPoint, direction)
+        newSeg = TransitionSegment:new(
+          newEnd,
+          seg.endPoint,
+          seg.z1,
+          seg.z2
+        )
+        seg.endPoint = newEnd
+        return TransitionCorner:new(newSeg, other)
+      end
+    end
+  end
+  return nil
+end
+
 
 local Transition = {}
 local MetaTransition = {}
@@ -165,7 +247,8 @@ function Transition:new(biome1, biome2)
   local transition = {
     biome1 = biome1,
     biome2 = biome2,
-    segments = {}
+    segments = {},
+    corners = {}
   }
 
   setmetatable(transition, MetaTransition)
