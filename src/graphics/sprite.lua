@@ -15,9 +15,11 @@ local SpriteResource = {}
 -- @param height
 -- @param animNumbers
 -- @param stepNumbers
+-- @param offsetX     [optional]
+-- @param offsetY     [optional]
 --
 -- @return A new sprite resource
-function SpriteResource:new(image, width, height, animNumbers, stepNumbers)
+function SpriteResource:new(image, width, height, animNumbers, stepNumbers, offsetX, offsetY)
   local anims = {}
   local imgW, imgH = image:getDimensions()
 
@@ -37,7 +39,11 @@ function SpriteResource:new(image, width, height, animNumbers, stepNumbers)
     image = image,
     anims = anims,
     width = width,
-    height = height
+    height = height,
+    offset = {
+      x = offsetX or 0,
+      y = offsetY or 0
+    }
   }
 end
 
@@ -57,10 +63,20 @@ function Sprite:new(resource)
     quad = resource.anims[1][1],
     currentAnim = 1,
     currentStep = 1,
-    animating = false
+    animating = false,
+    animEndCallback = nil
   }
   setmetatable(sprite, MetaSprite)
   return sprite
+end
+
+--------------------------------------------------------------------------------
+--- Change the resource the sprite is directing to
+function Sprite:setResource(resource)
+  self.resource = resource
+  self.image = resource.image
+  self.currentStep = 1
+  self.quad = resource.anims[self.currentAnim][self.currentStep]
 end
 
 --------------------------------------------------------------------------------
@@ -77,6 +93,9 @@ end
 function Sprite:nextStep()
   self.currentStep = self.currentStep % #self.resource.anims[1] + 1
   self.quad = self.resource.anims[self.currentAnim][self.currentStep]
+  if self.currentStep == 1 and self.animEndCallback then
+    self.animEndCallback()
+  end
 end
 
 MetaSprite.__index = Sprite

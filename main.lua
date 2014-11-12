@@ -2,7 +2,6 @@ require('luarocks.loader')
 local parser   = require('src.parser.lua')
 local ecs      = require('src.ecs')
 local graphics = require('src.graphics')
-local geometry = require('src.geometry')
 local assets   = require('src.assets')
 local segmentation = require('src.generation.segmentation')
 local overworld = require('src.generation.overworld')
@@ -10,6 +9,7 @@ local gui      = require('src.gui')
 local character = require('src.game.character')
 local player = require('src.game.player')
 local movement = require('src.movement')
+local input = require('src.input')
 
 local world = ecs.World:new()
 local canvas = graphics.base.Canvas:new{
@@ -25,6 +25,8 @@ local canvas = graphics.base.Canvas:new{
 local viewport = graphics.tile.Viewport:new(0, 0, 20, 15)
 
 local guiSystem = gui.System:new(world)
+input.setGuiSystem(guiSystem)
+
 local tileRenderSystem = graphics.tile.TileRenderSystem:new(world)
 local mapWidth, mapHeight = 0, 0
 
@@ -76,17 +78,8 @@ function love.draw()
   )
 end
 
-function love.keypressed(key)
-  guiSystem:onKeyDown(key)
-  player.onKeyDown(world, key)
-end
-
 function love.mousepressed(x, y)
   guiSystem:onClick(x, y)
-end
-
-function love.keyreleased(key)
-  player.onKeyUp(world, key)
 end
 
 local mouseX, mouseY = 0, 0
@@ -99,6 +92,7 @@ function love.update(dt)
     mouseX, mouseY = x, y
   end
 
+  player.update(world, input.keyboard)
   graphics.sprite.updateSprites(world, dt, 1 / 10)
   movement.updateTileMovable(world, dt, tileRenderSystem.index)
   player.centerViewport(world, viewport)

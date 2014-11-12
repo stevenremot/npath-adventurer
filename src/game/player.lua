@@ -17,52 +17,21 @@ function Player:new()
   }
 end
 
-local dx = 0
-local dy = 0
-
 --------------------------------------------------------------------------------
---- Called when a key has been pressed to move the player
-local function onKeyDown(world, key)
-  if key == "left" then
-    dx = dx - 1
-  elseif key == "right" then
-    dx = dx + 1
-  elseif key == "up" then
-    dy = dy - 1
-  elseif key == "down" then
-    dy = dy + 1
-  end
-
+--- Update the player with input state
+local function update(world, input)
   for entity, _ in world:getEntitiesWithComponent(Player.TYPE) do
-    local spriteComp, mov = world:getEntityComponents(
+    local spriteComp, mov, char = world:getEntityComponents(
       entity,
       sprite.SpriteComponent.TYPE,
-      movement.TileMovable.TYPE
+      movement.TileMovable.TYPE,
+      character.Character.TYPE
     )
-    character.move(spriteComp.sprite, mov, dx, dy)
-  end
-end
+    character.move(char, spriteComp.sprite, mov, input.dir.x, input.dir.y)
 
---------------------------------------------------------------------------------
---- Called when a key has been released
-local function onKeyUp(world, key)
-  if key == "left" then
-    dx = dx + 1
-  elseif key == "right" then
-    dx = dx - 1
-  elseif key == "up" then
-    dy = dy + 1
-  elseif key == "down" then
-    dy = dy - 1
-  end
-
-  for entity, _ in world:getEntitiesWithComponent(Player.TYPE) do
-    local spriteComp, mov = world:getEntityComponents(
-      entity,
-      sprite.SpriteComponent.TYPE,
-      movement.TileMovable.TYPE
-    )
-    character.move(spriteComp.sprite, mov, dx, dy)
+    if input.attack then
+      character.attack(char, spriteComp.sprite, mov, "gummyCharge")
+    end
   end
 end
 
@@ -80,7 +49,6 @@ end
 
 return {
   Player = Player,
-  onKeyDown = onKeyDown,
-  onKeyUp = onKeyUp,
+  update = update,
   centerViewport = centerViewport
 }
