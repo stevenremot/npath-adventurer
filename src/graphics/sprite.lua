@@ -63,10 +63,20 @@ function Sprite:new(resource)
     quad = resource.anims[1][1],
     currentAnim = 1,
     currentStep = 1,
-    animating = false
+    animating = false,
+    animEndCallback = nil
   }
   setmetatable(sprite, MetaSprite)
   return sprite
+end
+
+--------------------------------------------------------------------------------
+--- Change the resource the sprite is directing to
+function Sprite:setResource(resource)
+  self.resource = resource
+  self.image = resource.image
+  self.currentStep = 1
+  self.quad = resource.anims[self.currentAnim][self.currentStep]
 end
 
 --------------------------------------------------------------------------------
@@ -83,6 +93,9 @@ end
 function Sprite:nextStep()
   self.currentStep = self.currentStep % #self.resource.anims[1] + 1
   self.quad = self.resource.anims[self.currentAnim][self.currentStep]
+  if self.currentStep == 1 and self.animEndCallback then
+    self.animEndCallback()
+  end
 end
 
 MetaSprite.__index = Sprite

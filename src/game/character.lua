@@ -73,7 +73,26 @@ local function move(sprite, mov, dx, dy)
   end
 end
 
+--------------------------------------------------------------------------------
+--- Start an attack
+local function attack(sprite, mov, attackName)
+  local oldMovX, oldMovY = mov.x, mov.y
+  local oldResource = sprite.resource
+  local oldAnimating = sprite.animating
+  sprite:setResource(assets.getSprite(attackName))
+  sprite.animating = true
+  mov.x, mov.y = 0, 0
+
+  sprite.animEndCallback = function ()
+    mov.x, mov.y = oldMovX, oldMovY
+    sprite:setResource(oldResource)
+    sprite.animating = oldAnimating
+    sprite.animEndCallback = nil
+  end
+end
+
 return {
   createCharacter = createCharacter,
-  move = move
+  move = move,
+  attack = attack
 }

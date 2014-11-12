@@ -63,6 +63,10 @@ local function onKeyUp(world, key)
       movement.TileMovable.TYPE
     )
     character.move(spriteComp.sprite, mov, dx, dy)
+
+    if key == "t" then
+      character.attack(spriteComp.sprite, mov, "gummyCharge")
+    end
   end
 end
 

@@ -71,12 +71,19 @@ end
 
 --------------------------------------------------------------------------------
 --- Create a new sprite resource
-local function loadSprite(name, imageDir, width, height, animNumber, stepNumber)
+local function loadSprite(name, imageDir, width, height, animNumber, stepNumber, offsetX, offsetY)
   loadedAssets.sprites[name] = sprite.SpriteResource:new(
     loadImage(imageDir),
     width, height,
-    animNumber, stepNumber
+    animNumber, stepNumber,
+    offsetX, offsetY
   )
+end
+
+--------------------------------------------------------------------------------
+--- Return a pre-loaded sprite ressource
+local function getSprite(name)
+  return loadedAssets.sprites[name]
 end
 
 --------------------------------------------------------------------------------
@@ -103,5 +110,6 @@ end
 return {
   createTileEntity = createTileEntity,
   loadSprites = loadSprites,
-  createSprite = createSprite
+  createSprite = createSprite,
+  getSprite = getSprite
 }
