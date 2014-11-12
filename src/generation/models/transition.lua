@@ -105,8 +105,8 @@ function TransitionSegment:createEntities(world, tileIndex)
       local x = self.startPoint[1] + dx
       local y = self.startPoint[2] - 1
       assets.createTileEntity(world, tileIndex, borderImage, x, y, self.z1, 1)
-      for dz = 1, 2*heightDiff do
-        assets.createTileEntity(world, tileIndex, wallImage, x, y+dz, self.z2, 1)
+      for dz = 1, heightDiff do
+        assets.createTileEntity(world, tileIndex, wallImage, x, y, self.z1 - dz, 1)
       end
     end
   end
@@ -165,7 +165,7 @@ function Transition:new(biome1, biome2)
   local transition = {
     biome1 = biome1,
     biome2 = biome2,
-    segments = {}    
+    segments = {}
   }
 
   setmetatable(transition, MetaTransition)

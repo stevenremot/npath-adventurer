@@ -28,8 +28,8 @@ local BiomeDistribution = {
 --- The available altitudes and their weights of apparition
 local AltitudeDistribution = {
   { 0, 5 },
-  { 1, 2 },
-  { 2, 1 }
+  { 2, 2 },
+  { 4, 1 } 
 }
 
 --------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ local function createTransitions(biomes, biomeTiles)
           t:addSegment(s)
         end
       end
-    end  
+    end
   end
 
   -- horizontal transitions
@@ -148,7 +148,7 @@ local function createTransitions(biomes, biomeTiles)
           t:addSegment(s)
         end
       end
-    end  
+    end
   end
 
   return transitions

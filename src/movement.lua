@@ -20,17 +20,17 @@ end
 
 --------------------------------------------------------------------------------
 --- Return true if the position is legal (aka is not underground)
-local function canMoveHere(x, y, z, world, tileIndex)
+local function getGroundHeight(x, y, world, tileIndex)
   for _, entity in ipairs(tileIndex:getEntitiesAtPoint(x, y)) do
     local pos = world:getEntityComponents(
       entity,
       geometry.TilePositionable.TYPE
     )
     if pos.layer == 0 then
-      return pos.z <= z
+      return pos.z
     end
   end
-  return false
+  return nil
 end
 
 --------------------------------------------------------------------------------
@@ -50,13 +50,29 @@ local function updateTileMovable(world, dt, tileIndex)
 
       local newX, newY = pos.x + mov.x * dt, pos.y + mov.y * dt
 
-      local checkX, checkY = newX, newY + size.h
+      local halfSize = size.h / 2
+      local checkX, checkY = newX, newY + halfSize
+
+      local maxZ = 0
 
 
-      if canMoveHere(checkX, checkY, pos.z, world, tileIndex) and
-         canMoveHere(checkX + size.w, checkY, pos.z, world, tileIndex) then
+      for i = 0,1 do
+        for j = 0,1 do
+          local height = getGroundHeight(
+            checkX + i * size.w, checkY + j * halfSize,
+            world, tileIndex
+          )
+
+          if height ~= nil and height > maxZ then
+            maxZ = height
+          end
+        end
+      end
+
+      if pos.z >= maxZ then
         pos:setX(newX)
         pos:setY(newY)
+        pos.z = maxZ
       end
     end
   end
