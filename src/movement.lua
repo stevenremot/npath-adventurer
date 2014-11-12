@@ -54,7 +54,7 @@ local function updateTileMovable(world, dt, tileIndex)
       local checkX, checkY = newX, newY + halfSize
 
       local maxZ = 0
-
+      local hasVoid = false
 
       for i = 0,1 do
         for j = 0,1 do
@@ -63,13 +63,15 @@ local function updateTileMovable(world, dt, tileIndex)
             world, tileIndex
           )
 
-          if height ~= nil and height > maxZ then
+          if height == nil then
+            hasVoid = true
+          elseif height > maxZ then
             maxZ = height
           end
         end
       end
 
-      if pos.z >= maxZ then
+      if not hasVoid and pos.z >= maxZ then
         pos:setX(newX)
         pos:setY(newY)
         pos.z = maxZ
