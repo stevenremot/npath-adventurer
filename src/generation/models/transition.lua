@@ -1,169 +1,11 @@
--- models.lua
+-- transition.lua
 --
--- Modelisation of the overworld biomes and their transitions
+-- Modelisation of the transitions between biomes
 local assets = require('src.assets')
 
 local function tileEquality(tile1, tile2)
   return tile1[1] == tile2[1] and tile1[2] == tile2[2]
 end
-
---------------------------------------------------------------------------------
---- A tilemask is a table indexed with the tiles occupied by an object or
---- an environment
---- It is modelised as a sparse matrix
-local TileMask = {}
-local MetaTileMask = {}
-
---------------------------------------------------------------------------------
---- Create a new tilemask
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
-function TileMask:new(...)
-  local tilemask = {}
-
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-    if not tilemask[i] then
-      tilemask[i] = {}
-    end
-    tilemask[i][j] = true
-  end
-
-  setmetatable(tilemask, MetaTileMask)
-  return tilemask
-end
-
---------------------------------------------------------------------------------
---- Add tile index to a tilemask
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
-function TileMask:add(...)
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-    if not self[i] then
-      self[i] = {}
-    end
-    self[i][j] = true
-  end
-end
-
---------------------------------------------------------------------------------
---- Add a list of tile index to the tilemask
--- @param l Table of tile index: { {i,j}, {k,l}, ... }
-function TileMask:addList(l)
-  for _, index in ipairs(l) do
-    local i, j = index[1], index[2]
-    if not self[i] then
-      self[i] = {}
-    end
-    self[i][j] = true
-  end
-end
-
---------------------------------------------------------------------------------
---- Remove tile index to a tilemask
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
-function TileMask:remove(...)
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-    if not self[i] then
-      break
-    else
-      self[i][j] = nil
-      if next(self[i]) == nil then
-        self[i] = nil
-      end
-    end
-  end
-end
-
-
---------------------------------------------------------------------------------
---- Check if the tilemask contains one or several tiles
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
--- @return A boolean
-function TileMask:contains(...)
-  local b = true
-
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-
-    if not self[i] then
-      b = false
-      break
-    else
-      if not self[i][j] then
-        b = false
-        break
-      end
-    end
-
-  end
-
-  return b
-end
-
-MetaTileMask.__index = TileMask
-
---------------------------------------------------------------------------------
---- A biome is a part of the overworld generation
-local Biome = {}
-local MetaBiome = {}
-
---------------------------------------------------------------------------------
---- Create a new biome
---
--- @param codeSpace CodeSpace associated to this biome
--- @param center { x = x, y = y } Attraction point of the biome
--- @param type of biome
-function Biome:new(codeSpace, center, type, z)
-  local biome = {
-    codeSpace = codeSpace,
-    center = center,
-    type = type,
-    z = z or 0,
-    tileList = {},
-    tileMask = TileMask:new()
-  }
-
-  setmetatable(biome, MetaBiome)
-  return biome
-end
-
---------------------------------------------------------------------------------
---- Add a list of tile index
-function Biome:addTileList(list)
-  for _, tile in ipairs(list) do
-    table.insert(self.tileList, tile)
-  end
-  self.tileMask:addList(list)
-end
-
---------------------------------------------------------------------------------
---- Add one or several tile index
-function Biome:addTiles(...)
-  for _, tile in ipairs({...}) do
-    table.insert(self.tileList, tile)
-  end
-  self.tileMask:add(...)
-end
-
---------------------------------------------------------------------------------
---- Remove one or several tile index
-function Biome:removeTiles(...)
-  for _, tile in ipairs({...}) do
-    table.remove(self.tileList, tile)
-  end
-  self.tileMask:remove(...)
-end
-
---------------------------------------------------------------------------------
---- Distance of a given point to the biome
-function Biome:distanceTo(x, y)
-  local distance = ((x - self.center.x)^2 + (y - self.center.y)^2)
-  distance = distance / self.codeSpace:getComplexity()
-  return distance
-end
-
-MetaBiome.__index = Biome
 
 --------------------------------------------------------------------------------
 --- A biome transition segment
@@ -263,7 +105,7 @@ function TransitionSegment:createEntities(world, tileIndex)
       local x = self.startPoint[1] + dx
       local y = self.startPoint[2] - 1
       assets.createTileEntity(world, tileIndex, borderImage, x, y, self.z1, 1)
-      for dz = 1, heightDiff do
+      for dz = 1, 2*heightDiff do
         assets.createTileEntity(world, tileIndex, wallImage, x, y+dz, self.z2, 1)
       end
     end
@@ -271,6 +113,48 @@ function TransitionSegment:createEntities(world, tileIndex)
 end
 
 MetaTransitionSegment.__index = TransitionSegment
+
+local TransitionCorner = {}
+local MetaTransitionCorner = {}
+
+function TransitionCorner:new(segment1, segment2)
+  local transitionCorner = {
+    segment1 = segment1,
+    segment2 = segment2
+  }
+
+  setmetatable(transitionCorner, MetaTransitionCorner)
+  return transitionCorner
+end
+
+function TransitionCorner:getType()
+  local type1 = segment1:getType()
+  local type2 = segment2:getType()
+
+  if type1 == 'updown' and type2 == 'leftright' then
+    return 'outer_downright'
+  elseif type1 == 'updown' and type2 == 'rightleft' then
+    return 'inner_upright'
+  elseif type1 == 'downup' and type2 == 'leftright' then
+    return 'outer_upright'
+  elseif type1 == 'downup' and type2 == 'rightleft' then
+    return 'inner_downright'
+  elseif type1 == 'leftright' and type2 == 'updown' then
+    return 'inner_upleft'
+  elseif type1 == 'leftright' and type2 == 'downup' then
+    return 'inner_downleft'
+  elseif type1 == 'rightleft' and type2 == 'updown' then
+    return 'outer_downleft'
+  elseif type1 == 'rightleft' and type2 == 'downup' then
+    return 'outer_upleft'
+  end
+end
+
+function TransitionCorner:createEntities(world, tileIndex)
+
+end
+
+MetaTransitionCorner.__index = TransitionCorner
 
 
 local Transition = {}
@@ -314,8 +198,6 @@ end
 MetaTransition.__index = Transition
 
 return {
-  TileMask = TileMask,
-  Biome = Biome,
   Transition = Transition,
   TransitionSegment = TransitionSegment
 }

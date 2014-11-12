@@ -50,8 +50,8 @@ function love.load()
       strokeColor = { r = 255, g = 255, b = 255 }
     }
   )
-
-  local gummy = character.createCharacter(world, "gummy", 10, 10, 0, tileRenderSystem.index)
+  local z = map.tiles[10][10].altitude
+  local gummy = character.createCharacter(world, "gummy", 10, 10, z, tileRenderSystem.index)
   world:addComponent(gummy, player.Player:new())
 end
 
