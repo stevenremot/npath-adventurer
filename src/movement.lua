@@ -49,12 +49,10 @@ local function updateTileMovable(world, dt, tileIndex)
       local newX, newY = pos.x + mov.x * dt, pos.y + mov.y * dt
 
       local checkX, checkY = newX, newY + size.h
-      if mov.x > 0 then
-        checkX = checkX + size.w
-      end
 
 
-      if canMoveHere(checkX, checkY, pos.z, world, tileIndex) then
+      if canMoveHere(checkX, checkY, pos.z, world, tileIndex) and
+         canMoveHere(checkX + size.w, checkY, pos.z, world, tileIndex) then
         pos:setX(newX)
         pos:setY(newY)
       end
