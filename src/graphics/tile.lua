@@ -149,7 +149,7 @@ function TileIndex:getEntitiesInViewport(world, viewport)
   local left = math.floor(viewport.x) - 1
   local right = math.ceil(viewport.x + viewport.w)
   local up = math.floor(viewport.y) - 1
-  local down = math.ceil(viewport.y + viewport.h)
+  local down = math.ceil(viewport.y + viewport.h) + 2
 
   for x = left, right do
     if self.index[x] then
@@ -232,7 +232,7 @@ function TileRenderSystem:render(canvas, viewport)
     table.sort(entitiesToDraw, compareTilesLayer)
     for _, e in ipairs(entitiesToDraw) do
       local x = (e.tile.x - viewport.x) * geometry.TileSize
-      local y = (e.tile.y - viewport.y) * geometry.TileSize
+      local y = (e.tile.y - viewport.y - e.tile.z) * geometry.TileSize
       e.render.draw(canvas:translate(x, y))
     end
   end

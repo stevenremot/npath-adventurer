@@ -125,7 +125,7 @@ local function createTransitions(biomes, biomeTiles)
           t:addSegment(s)
         end
       end
-    end  
+    end
   end
 
   -- horizontal transitions
@@ -145,7 +145,7 @@ local function createTransitions(biomes, biomeTiles)
           t:addSegment(s)
         end
       end
-    end  
+    end
   end
 
   return transitions
