@@ -6,20 +6,30 @@ local geometry = require('src.geometry')
 local graphics = require('src.graphics.base')
 local sprite = require('src.graphics.sprite')
 local movement = require('src.movement')
+local combat = require('src.game.combat')
 
 --------------------------------------------------------------------------------
 --- A component for a caracter. A character is basically an entity
 --- that con do actions
 local Character = {
-  TYPE = "character"
+  TYPE = "character",
+  DIRECTION = {
+    DOWN = 1,
+    RIGHT = 2,
+    LEFT = 3,
+    UP = 4
+  }
 }
 
 --------------------------------------------------------------------------------
 --- Create a new character component
-function Character:new()
+function Character:new(health, group)
   return {
     type = self.TYPE,
-    inAction = false
+    inAction = false,
+    health = health,
+    direction = self.DIRECTION.DOWN,
+    group = group
   }
 end
 
@@ -32,7 +42,7 @@ end
 -- @param x
 -- @param y
 -- @param tileIndex
-local function createCharacter(world, spriteName, x, y, tileIndex)
+local function createCharacter(world, spriteName, x, y, tileIndex, health, group)
   local spriteObj = assets.createSprite(spriteName)
   local z = movement.getGroundHeight(x, y, world, tileIndex)
 
@@ -52,19 +62,12 @@ local function createCharacter(world, spriteName, x, y, tileIndex)
   world:addComponent(character, render)
   world:addComponent(character, mov)
   world:addComponent(character, spriteComp)
-  world:addComponent(character, Character:new())
+  world:addComponent(character, Character:new(health, group))
 
   tileIndex:register(character, pos)
 
   return character
 end
-
-local SPRITE_LAYERS = {
-  LEFT = 3,
-  RIGHT = 2,
-  UP = 4,
-  DOWN = 1
-}
 
 local SPEED = 5
 
@@ -81,29 +84,32 @@ local function move(character, sprite, mov, dx, dy)
       sprite.animating = true
 
       if dx > 0 then
-        sprite:setAnimation(SPRITE_LAYERS.RIGHT)
+        character.direction = Character.DIRECTION.RIGHT
       elseif dx < 0 then
-        sprite:setAnimation(SPRITE_LAYERS.LEFT)
+        character.direction = Character.DIRECTION.LEFT
       elseif dy > 0 then
-        sprite:setAnimation(SPRITE_LAYERS.DOWN)
+        character.direction = Character.DIRECTION.DOWN
       else
-        sprite:setAnimation(SPRITE_LAYERS.UP)
+        character.direction = Character.DIRECTION.UP
       end
+      sprite:setAnimation(character.direction)
     end
   end
 end
 
 --------------------------------------------------------------------------------
 --- Start an attack
-local function attack(character, sprite, mov, attackName)
+local function attack(world, character, pos, sprite, mov, attackName)
   if not character.inAction then
     character.inAction = true
     local oldMovX, oldMovY = mov.x, mov.y
     local oldResource = sprite.resource
     local oldAnimating = sprite.animating
-    sprite:setResource(assets.getSprite(attackName))
+    local attack = assets.getAttack(attackName)
+    sprite:setResource(assets.getSprite(attack.sprite))
     sprite.animating = true
     mov.x, mov.y = 0, 0
+    local harmful = combat.createAttackBox(world, attack, pos, character)
 
     sprite.animEndCallback = function ()
       mov.x, mov.y = oldMovX, oldMovY
@@ -111,6 +117,7 @@ local function attack(character, sprite, mov, attackName)
       sprite.animating = oldAnimating
       sprite.animEndCallback = nil
       character.inAction = false
+      world:removeEntity(harmful)
     end
   end
 end

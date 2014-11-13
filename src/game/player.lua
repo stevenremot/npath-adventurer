@@ -21,8 +21,9 @@ end
 --- Update the player with input state
 local function update(world, input)
   for entity, _ in world:getEntitiesWithComponent(Player.TYPE) do
-    local spriteComp, mov, char = world:getEntityComponents(
+    local pos, spriteComp, mov, char = world:getEntityComponents(
       entity,
+      geometry.TilePositionable.TYPE,
       sprite.SpriteComponent.TYPE,
       movement.TileMovable.TYPE,
       character.Character.TYPE
@@ -30,7 +31,7 @@ local function update(world, input)
     character.move(char, spriteComp.sprite, mov, input.dir.x, input.dir.y)
 
     if input.attack then
-      character.attack(char, spriteComp.sprite, mov, "gummyCharge")
+      character.attack(world, char, pos, spriteComp.sprite, mov, "gummyCharge")
     end
   end
 end

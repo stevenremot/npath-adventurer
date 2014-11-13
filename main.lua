@@ -10,6 +10,7 @@ local character = require('src.game.character')
 local player = require('src.game.player')
 local movement = require('src.movement')
 local input = require('src.input')
+local collision = require('src.collision')
 
 local world = ecs.World:new()
 local canvas = graphics.base.Canvas:new{
@@ -33,6 +34,7 @@ local mapWidth, mapHeight = 0, 0
 function love.load()
   canvas:setFontSize(20)
   assets.loadSprites()
+  assets.loadAttacks()
 
   local ast = parser.parseDir('src/')
   local seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
@@ -56,14 +58,16 @@ function love.load()
   local gummy = character.createCharacter(
     world, "gummy",
     10, 10,
-    tileRenderSystem.index
+    tileRenderSystem.index,
+    10, "hero"
   )
   world:addComponent(gummy, player.Player:new())
 
   character.createCharacter(
     world, "gummy",
     15, 12,
-    tileRenderSystem.index
+    tileRenderSystem.index,
+    10, "baddies"
   )
 end
 
@@ -93,6 +97,7 @@ function love.update(dt)
   end
 
   player.update(world, input.keyboard)
+  collision.applyCollisions(world, tileRenderSystem.index)
   graphics.sprite.updateSprites(world, dt, 1 / 10)
   movement.updateTileMovable(world, dt, tileRenderSystem.index)
   player.centerViewport(world, viewport)

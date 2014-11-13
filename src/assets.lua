@@ -10,7 +10,8 @@ local sprite   = require('src.graphics.sprite')
 --------------------------------------------------------------------------------
 local loadedAssets = {
   images = {},
-  sprites = {}
+  sprites = {},
+  attacks = {}
 }
 
 --------------------------------------------------------------------------------
@@ -102,6 +103,21 @@ local function loadSprites()
 end
 
 --------------------------------------------------------------------------------
+--- Load the attacks file
+local function loadAttacks()
+  local attacks = require('assets.attacks')
+  for name, spec in pairs(attacks) do
+    loadedAssets.attacks[name] = spec
+  end
+end
+
+--------------------------------------------------------------------------------
+--- return an attack spec previously loaded
+local function getAttack(attackName)
+  return loadedAssets.attacks[attackName]
+end
+
+--------------------------------------------------------------------------------
 --- Create a new sprite based on a registered resource
 local function createSprite(name)
   return sprite.Sprite:new(loadedAssets.sprites[name])
@@ -111,5 +127,7 @@ return {
   createTileEntity = createTileEntity,
   loadSprites = loadSprites,
   createSprite = createSprite,
-  getSprite = getSprite
+  getSprite = getSprite,
+  loadAttacks = loadAttacks,
+  getAttack = getAttack
 }

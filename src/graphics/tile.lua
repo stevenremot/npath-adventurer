@@ -125,15 +125,9 @@ end
 --------------------------------------------------------------------------------
 --- Remove an entity from the index
 function TileIndex:removeEntity(entity, x, y)
-  if not self.index[x] then
-    self.index[x] = {}
+  if self.index[x] and self.index[x][y] then
+    self.index[x][y][entity] = nil
   end
-
-  if not self.index[x][y] then
-    self.index[x][y] = {}
-  end
-
-  self.index[x][y][entity] = nil
 end
 
 --------------------------------------------------------------------------------

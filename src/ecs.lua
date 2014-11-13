@@ -92,6 +92,9 @@ function World:getEntityComponents(entity, ...)
   return unpack(components)
 end
 
+local function noop()
+end
+
 --------------------------------------------------------------------------------
 -- Return an iterator on the entities that have a component of a specific type
 --
@@ -99,7 +102,11 @@ end
 --
 -- @return Iterator of entity, component
 function World:getEntitiesWithComponent(type)
-  return pairs(self.components[type])
+  if self.components[type] then
+    return pairs(self.components[type])
+  else
+    return noop
+  end
 end
 
 MetaWorld.__index = World
