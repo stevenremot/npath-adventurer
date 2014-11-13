@@ -29,7 +29,9 @@ function TransitionSegment:new(startPoint, endPoint, z1, z2)
     startPoint = startPoint,
     endPoint = endPoint,
     z1 = z1,
-    z2 = z2
+    z2 = z2,
+    startCorner = nil,
+    endCorner = nil
   }
 
   setmetatable(transitionSegment, MetaTransitionSegment)
@@ -90,6 +92,28 @@ function TransitionSegment:getDirection()
   end       
 end
 
+-- @return Segment of length 1 with the same startPoint and direction as self
+function TransitionSegment:getStartSubSegment()
+  local newEnd = tileSum(self.startPoint, self:getDirection())
+  return TransitionSegment:new(
+    self.startPoint,
+    newEnd,
+    self.z1,
+    self.z2
+  )
+end
+
+-- @return Segment of length 1 with the same endPoint and direction as self
+function TransitionSegment:getEndSubSegment()
+  local newStart = tileSub(self.endPoint, self:getDirection())
+  return TransitionSegment:new(
+    newStart,
+    self.endPoint,
+    self.z1,
+    self.z2
+  )
+end
+
 function TransitionSegment:isOrthogonal(other)
   local stype = self:getType()
   local otype = other:getType()
@@ -109,37 +133,51 @@ function TransitionSegment:isOrthogonal(other)
   return false
 end
 
-function TransitionSegment:createEntities(world, tileIndex)
+function TransitionSegment:createEntities(world, tileIndex)  
   local type = self:getType()
   local heightDiff = math.abs(self.z1 - self.z2)
   local borderImage = 'assets/images/'
   local wallImage = 'assets/images/rock.png'
 
+  local dmin, dmax = 0, self:getLength()-1
+  if self.startCorner ~= nil then
+    dmin = 1
+    if tileEquality(self:getDirection(), {1, 0}) then
+      self.startCorner:createEntities(world, tileIndex)
+    end
+  end
+  if self.endCorner ~= nil then
+    dmax = dmax-1
+    if tileEquality(self:getDirection(), {1, 0}) then
+      self.endCorner:createEntities(world, tileIndex)
+    end
+  end
+
   -- create border
   if type == 'leftright' then
     borderImage = borderImage .. 'border_left.png'
-    for dy = 0, self:getLength()-1 do
+    for dy = dmin, dmax do
       local x = self.startPoint[1]
       local y = self.startPoint[2] + dy
       assets.createTileEntity(world, tileIndex, borderImage, x, y, self.z2, 1)
     end
   elseif type == 'rightleft' then
     borderImage = borderImage .. 'border_right.png'
-    for dy = 0, self:getLength()-1 do
+    for dy = dmin, dmax do
       local x = self.startPoint[1] - 1
       local y = self.startPoint[2] + dy
       assets.createTileEntity(world, tileIndex, borderImage, x, y, self.z1, 1)
     end
   elseif type == 'updown' then
     borderImage = borderImage .. 'border_up.png'
-    for dx = 0, self:getLength()-1 do
+    for dx = dmin, dmax do
       local x = self.startPoint[1] + dx
       local y = self.startPoint[2]
       assets.createTileEntity(world, tileIndex, borderImage, x, y, self.z2, 1)
     end
   elseif type == 'downup' then
     borderImage = borderImage .. 'border_down.png'
-    for dx = 0, self:getLength()-1 do
+    for dx = dmin, dmax do
       local x = self.startPoint[1] + dx
       local y = self.startPoint[2] - 1
       assets.createTileEntity(world, tileIndex, borderImage, x, y, self.z1, 1)
@@ -172,8 +210,8 @@ function TransitionCorner:new(segment1, segment2)
 end
 
 function TransitionCorner:getType()
-  local type1 = segment1:getType()
-  local type2 = segment2:getType()
+  local type1 = self.segment1:getType()
+  local type2 = self.segment2:getType()
 
   if type1 == 'updown' and type2 == 'leftright' then
     return 'outer_downright'
@@ -195,14 +233,49 @@ function TransitionCorner:getType()
 end
 
 function TransitionCorner:createEntities(world, tileIndex)
+  local t = self:getType()
+  local cornerImage = 'assets/images/corner_' .. t .. '.png'
+  local wallImage = 'assets/images/rock.png'
+
+  local origin = self.segment1.startPoint
+  local layer = 1.7
+  if t == 'inner_downright' then
+    origin = tileSub(origin, {0, 1})
+  elseif t == 'outer_downright' or t == 'outer_upright' then
+    origin = tileSub(origin, {0, 1})
+    layer = 1.3
+  elseif t == 'outer_upleft' then
+    origin = tileSub(origin, {1, 1})
+    layer = 1.3
+  elseif t == 'outer_downleft' then
+    origin = tileSub(origin, {1, 0})
+    layer = 1.3
+  end
+
+  local z1, z2 = self.segment1.z1, self.segment1.z2
+  if z1 > z2 then
+    z1, z2 = z2, z1
+  end
+  local x, y = origin[1], origin[2]
+
+  assets.createTileEntity(world, tileIndex, cornerImage, x, y, z2, layer)
+
+  if t == 'inner_downright' or t == 'inner_downleft' or t == 'outer_upright' then
+    for dz = 1, z2-z1 do
+      assets.createTileEntity(world, tileIndex, wallImage, x, y, z2 - dz, 1)
+    end
+  elseif t == 'outer_upleft' then
+    for dz = 1, z2-z1 do
+      assets.createTileEntity(world, tileIndex, wallImage, x+1, y, z2 - dz, 1)
+    end
+  end
 
 end
 
 MetaTransitionCorner.__index = TransitionCorner
 
 -- Attempt to connect another orthogonal TransitionSegment to self
--- If a connection is possible, this segment will be amputed of its corner part
-local function hasCorner(seg, other)
+local function findCorner(seg, other)
   if seg:isOrthogonal(other) then   
     local altitudeCond = (seg.z1 == other.z1 and seg.z2 == other.z2)
     altitudeCond = altitudeCond or (seg.z2 == other.z1 and seg.z1 == other.z2)
@@ -211,31 +284,37 @@ local function hasCorner(seg, other)
       local se = tileEquality(seg.startPoint, other.endPoint)
       local ee = tileEquality(seg.endPoint, other.endPoint)
       local es = tileEquality(seg.endPoint, other.startPoint)
-      local direction = seg:getDirection()
-      if ss or se then
-        local newStart = tileSum(seg.startPoint, direction)
-        newSeg = TransitionSegment:new(
-          seg.startPoint,
-          newStart,
-          seg.z1,
-          seg.z2
+      if ss then
+        local corner = TransitionCorner:new(
+          seg:getStartSubSegment(),
+          other:getStartSubSegment()
         )
-        seg.startPoint = newStart
-        return TransitionCorner:new(newSeg, other)
-      elseif ee or es then
-        local newEnd = tileSub(seg.endPoint, direction)
-        newSeg = TransitionSegment:new(
-          newEnd,
-          seg.endPoint,
-          seg.z1,
-          seg.z2
+        seg.startCorner = corner
+        other.startCorner = corner
+      elseif se then
+        local corner = TransitionCorner:new(
+          seg:getStartSubSegment(),
+          other:getEndSubSegment()
         )
-        seg.endPoint = newEnd
-        return TransitionCorner:new(newSeg, other)
+        seg.startCorner = corner
+        other.endCorner = corner
+      elseif ee then
+        local corner = TransitionCorner:new(
+          seg:getEndSubSegment(),
+          other:getEndSubSegment()
+        )
+        seg.endCorner = corner
+        other.endCorner = corner
+      elseif es then
+        local corner = TransitionCorner:new(
+          seg:getEndSubSegment(),
+          other:getStartSubSegment()
+        )
+        seg.endCorner = corner
+        other.startCorner = corner
       end
     end
   end
-  return nil
 end
 
 
@@ -247,8 +326,7 @@ function Transition:new(biome1, biome2)
   local transition = {
     biome1 = biome1,
     biome2 = biome2,
-    segments = {},
-    corners = {}
+    segments = {}
   }
 
   setmetatable(transition, MetaTransition)
@@ -267,6 +345,19 @@ function Transition:addSegment(segment)
 
   if not merged then
     table.insert(self.segments, segment)
+  end
+end
+
+function Transition:createCorners()
+  for _, s in ipairs(self.segments) do
+    -- horizontal segment
+    if tileEquality(s:getDirection(), {1, 0}) then
+      for _, s2 in ipairs(self.segments) do
+        if s.startCorner == nil or s.endCorner == nil then
+          findCorner(s, s2)
+        end
+      end
+    end
   end
 end
 

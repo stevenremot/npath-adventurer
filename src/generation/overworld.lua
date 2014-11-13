@@ -157,6 +157,7 @@ end
 local function createTransitionEntities(ecsWorld, tileIndex, transitions)
   for _, line in pairs(transitions) do
     for _, t in pairs(line) do
+      t:createCorners()
       t:createEntities(ecsWorld, tileIndex)
     end
   end

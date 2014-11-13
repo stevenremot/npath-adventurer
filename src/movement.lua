@@ -45,7 +45,6 @@ local function updateTileMovable(world, dt, tileIndex)
         entity,
         geometry.TilePositionable.TYPE, geometry.TileDimensionable.TYPE
       )
-      
       local newX, newY = pos.x + mov.x * dt, pos.y + mov.y * dt
 
       local halfSize = size.h / 2
