@@ -199,7 +199,7 @@ local function compareTilesLayer(a, b)
   local az, bz = a.tile.z, b.tile.z
   local ay, by = a.tile.y, b.tile.y
   local al, bl = a.tile.layer, b.tile.layer
-  return az < bz or (az == bz and  al < bl)-- or (al == bl and ay < by))
+  return az < bz or (az == bz and (al < bl or (al == bl and ay < by)))
 end
 
 --------------------------------------------------------------------------------
