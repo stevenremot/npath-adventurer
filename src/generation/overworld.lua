@@ -159,6 +159,7 @@ local function createTransitionEntities(ecsWorld, tileIndex, transitions)
     for _, t in pairs(line) do
       t:createCorners()
       t:createEntities(ecsWorld, tileIndex)
+      t:createStairs(ecsWorld, tileIndex)
     end
   end
 end

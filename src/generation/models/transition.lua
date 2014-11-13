@@ -317,6 +317,44 @@ local function findCorner(seg, other)
   end
 end
 
+local Stair = {}
+local MetaStair = {}
+
+function Stair:new(origin, width, z1, z2)
+  local stair = {
+    origin = origin,
+    width = width,
+    z1 = z1,
+    z2 = z2
+  }
+  setmetatable(stair, MetaStair)
+  return stair
+end
+
+function Stair:createEntities(world, tileIndex)
+  local stairLeft = 'assets/images/stair_side_left.png'
+  local stairRight = 'assets/images/stair_side_right.png'
+  local stairMiddle = 'assets/images/stair_middle.png'
+
+  local x, y = self.origin[1], self.origin[2]-1
+  local height = self.z1 - self.z2
+
+  for dz = 1, height do
+    assets.createTileEntity(world, tileIndex, stairLeft, x, y, self.z1 - dz, 2)
+  end
+
+  for dx = 1, self.width-2 do
+    for dz = 1, height do
+      assets.createTileEntity(world, tileIndex, stairMiddle, x+dx, y, self.z1 - dz, 2)
+    end
+  end
+
+  for dz = 1, height do
+    assets.createTileEntity(world, tileIndex, stairRight, x+self.width-1, y, self.z1 - dz, 2)
+  end
+end
+
+MetaStair.__index = Stair
 
 local Transition = {}
 local MetaTransition = {}
@@ -357,6 +395,22 @@ function Transition:createCorners()
           findCorner(s, s2)
         end
       end
+    end
+  end
+end
+
+function Transition:createStairs(world, tileIndex)
+  for _, s in ipairs(self.segments) do
+    if s:getType() == 'downup' and s:getLength() > 3 then
+      local origin = tileSum(s.startPoint, {1, 0})
+      local width = s:getLength() - 2
+      local stair = Stair:new(
+        origin,
+        width,
+        s.z1,
+        s.z2
+      )
+      stair:createEntities(world, tileIndex)
     end
   end
 end
