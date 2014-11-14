@@ -2,18 +2,9 @@
 --
 -- Modelisation of the transitions between biomes
 local assets = require('src.assets')
-
-local function tileEquality(tile1, tile2)
-  return tile1[1] == tile2[1] and tile1[2] == tile2[2]
-end
-
-local function tileSum(tile1, tile2)
-  return { tile1[1] + tile2[1], tile1[2] + tile2[2] }
-end
-
-local function tileSub(tile1, tile2)
-  return { tile1[1] - tile2[1], tile1[2] - tile2[2] }
-end
+local tileEquality = require('src.generation.models.tileutils').tileEquality
+local tileSum = require('src.generation.models.tileutils').tileSum
+local tileSub = require('src.generation.models.tileutils').tileSub
 
 --------------------------------------------------------------------------------
 --- A biome transition segment

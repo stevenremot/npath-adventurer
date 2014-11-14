@@ -2,105 +2,7 @@
 --
 -- Modelisation of the overworld biomes
 
-local function tileEquality(tile1, tile2)
-  return tile1[1] == tile2[1] and tile1[2] == tile2[2]
-end
-
---------------------------------------------------------------------------------
---- A tilemask is a table indexed with the tiles occupied by an object or
---- an environment
---- It is modelised as a sparse matrix
-local TileMask = {}
-local MetaTileMask = {}
-
---------------------------------------------------------------------------------
---- Create a new tilemask
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
-function TileMask:new(...)
-  local tilemask = {}
-
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-    if not tilemask[i] then
-      tilemask[i] = {}
-    end
-    tilemask[i][j] = true
-  end
-
-  setmetatable(tilemask, MetaTileMask)
-  return tilemask
-end
-
---------------------------------------------------------------------------------
---- Add tile index to a tilemask
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
-function TileMask:add(...)
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-    if not self[i] then
-      self[i] = {}
-    end
-    self[i][j] = true
-  end
-end
-
---------------------------------------------------------------------------------
---- Add a list of tile index to the tilemask
--- @param l Table of tile index: { {i,j}, {k,l}, ... }
-function TileMask:addList(l)
-  for _, index in ipairs(l) do
-    local i, j = index[1], index[2]
-    if not self[i] then
-      self[i] = {}
-    end
-    self[i][j] = true
-  end
-end
-
---------------------------------------------------------------------------------
---- Remove tile index to a tilemask
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
-function TileMask:remove(...)
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-    if not self[i] then
-      break
-    else
-      self[i][j] = nil
-      if next(self[i]) == nil then
-        self[i] = nil
-      end
-    end
-  end
-end
-
-
---------------------------------------------------------------------------------
---- Check if the tilemask contains one or several tiles
--- @param ... A sequence of tile index {i,j}, {k,l}, etc
--- @return A boolean
-function TileMask:contains(...)
-  local b = true
-
-  for _, index in ipairs{...} do
-    local i, j = index[1], index[2]
-
-    if not self[i] then
-      b = false
-      break
-    else
-      if not self[i][j] then
-        b = false
-        break
-      end
-    end
-
-  end
-
-  return b
-end
-
-MetaTileMask.__index = TileMask
+local tileutils = require('src.generation.models.tileutils')
 
 --------------------------------------------------------------------------------
 --- A biome is a part of the overworld generation
@@ -120,7 +22,7 @@ function Biome:new(codeSpace, center, type, z)
     type = type,
     z = z or 0,
     tileList = {},
-    tileMask = TileMask:new()
+    tileMask = tileutils.TileMask:new()
   }
 
   setmetatable(biome, MetaBiome)
@@ -147,11 +49,15 @@ end
 
 --------------------------------------------------------------------------------
 --- Remove one or several tile index
+-- This function has a bad complexity
 function Biome:removeTiles(...)
-  for _, tile in ipairs({...}) do
-    table.remove(self.tileList, tile)
-  end
   self.tileMask:remove(...)
+
+  for i = #self.tileList, 1, -1 do
+    if not self.tileMask:contains(tileList[i]) then
+      table.remove(self.tileList, i)
+    end
+  end
 end
 
 --------------------------------------------------------------------------------

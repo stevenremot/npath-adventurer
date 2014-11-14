@@ -1,0 +1,3 @@
+-- object.lua
+--
+-- Modelisation of an object which populates a biome
