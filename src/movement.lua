@@ -19,6 +19,49 @@ function TileMovable:new()
 end
 
 --------------------------------------------------------------------------------
+--- Component that can be restricted on certain axes
+local TileRestrained = {
+    TYPE = "tilerestrained"
+}
+
+--------------------------------------------------------------------------------
+--- Create a new restrained component
+--
+-- @param options.x [optional] {min, max}
+-- @param options.y [optional] {min, max}
+-- @param options.z [optional] {min, max}
+function TileRestrained:new(options)
+  return {
+    type = self.TYPE,
+    limits = options
+  }
+end
+
+--------------------------------------------------------------------------------
+--- Restrain position in component's limits
+--
+-- If limits are reached, also set movmenet to zero for the
+-- corresponding axis.
+local function restrain(pos, mov, res)
+  local assoc = {
+    x = "setX",
+    y = "setY",
+    z = "setZ"
+  }
+  for _, axe in pairs({"x", "y", "z"}) do
+    if res.limits[axe] then
+      if pos[axe] <= res.limits[axe][1]  then
+        pos[assoc[axe]](pos, res.limits[axe][1])
+        mov[axe] = 0
+      elseif pos[axe] >= res.limits[axe][2] then
+        pos[assoc[axe]](pos, res.limits[axe][2])
+        mov[axe] = 0
+      end
+    end
+  end
+end
+
+--------------------------------------------------------------------------------
 --- Return the ground height at x, y, or nil if there is no ground
 local function getGroundHeight(x, y, world, tileIndex)
   for _, entity in ipairs(tileIndex:getEntitiesAtPoint(x, y)) do
@@ -41,9 +84,11 @@ end
 local function updateTileMovable(world, dt, tileIndex)
   for entity, mov in world:getEntitiesWithComponent(TileMovable.TYPE) do
     if mov.x ~= 0 or mov.y ~= 0 then
-      local pos, size = world:getEntityComponents(
+      local pos, size, res = world:getEntityComponents(
         entity,
-        geometry.TilePositionable.TYPE, geometry.TileDimensionable.TYPE
+        geometry.TilePositionable.TYPE,
+        geometry.TileDimensionable.TYPE,
+        TileRestrained.TYPE
       )
 
       local newX, newY = pos.x + mov.x * dt, pos.y + mov.y * dt
@@ -72,8 +117,10 @@ local function updateTileMovable(world, dt, tileIndex)
       if not hasVoid and pos.z >= maxZ then
         pos:setX(newX)
         pos:setY(newY)
-        pos.z = maxZ
+        pos:setZ(maxZ)
+        if res then restrain(pos, mov, res) end
       end
+
     end
   end
 end
@@ -81,5 +128,6 @@ end
 return {
   TileMovable = TileMovable,
   updateTileMovable = updateTileMovable,
-  getGroundHeight = getGroundHeight
+  getGroundHeight = getGroundHeight,
+  TileRestrained = TileRestrained
 }

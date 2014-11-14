@@ -111,7 +111,6 @@ function Character:createEntities(world, tileIndex)
   else
     group = 'hero'
   end
-  print(self.name, group)
   character.createCharacter(world, self.name, x, y, tileIndex, 10, group)  
 end
 

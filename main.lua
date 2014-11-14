@@ -10,6 +10,7 @@ local character = require('src.game.character')
 local player = require('src.game.player')
 local movement = require('src.movement')
 local input = require('src.input')
+local detection = require('src.game.detection')
 local collision = require('src.collision')
 
 local world = ecs.World:new()
@@ -62,11 +63,21 @@ function love.load()
   )
   world:addComponent(gummy, player.Player:new())
 
-  character.createCharacter(
+  local baddy = character.createCharacter(
     world, "red",
     15, 12,
     tileRenderSystem.index,
     10, "baddies"
+  )
+  world:addComponent(
+    baddy,
+    detection.Detector:new(
+      2,
+      {
+        {5, function () print('OMG') end},
+        {2, function (entity, pos) print(entity, pos.x, pos.y, pos.z) end}
+      }
+    )
   )
 end
 
@@ -96,9 +107,13 @@ function love.update(dt)
   end
 
   player.update(world, input.keyboard)
-  collision.applyCollisions(world, tileRenderSystem.index)
-  graphics.sprite.updateSprites(world, dt, 1 / 10)
+
   movement.updateTileMovable(world, dt, tileRenderSystem.index)
+  collision.applyCollisions(world, tileRenderSystem.index)
+  detection.callDetectors(world)
+
+  graphics.sprite.updateSprites(world, dt, 1 / 10)
+
   player.centerViewport(world, viewport)
   viewport:restrainToRectangle(
     1, 1,

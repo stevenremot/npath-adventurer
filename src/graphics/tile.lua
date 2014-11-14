@@ -102,6 +102,8 @@ function TileIndex:register(entity, pos)
     self.y = y
     index:indexEntity(entity, math.floor(self.y), math.floor(self.y))
   end
+
+  pos.setZ = function (self, z) self.z = z end
 end
 
 --------------------------------------------------------------------------------

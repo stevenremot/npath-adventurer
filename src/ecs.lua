@@ -87,7 +87,8 @@ end
 function World:getEntityComponents(entity, ...)
   local components = {}
   for _, type in ipairs{...} do
-    components[#components + 1] = self.components[type][entity]
+    components[#components + 1] =
+      self.components[type] and self.components[type][entity]
   end
   return unpack(components)
 end
