@@ -4,6 +4,7 @@
 
 local tileutils = require('src.generation.models.tileutils')
 local object = require('src.generation.models.object')
+local Types = require('src.world').Tile.TYPE
 
 --------------------------------------------------------------------------------
 --- A biome is a part of the overworld generation
@@ -66,9 +67,9 @@ function Biome:distanceTo(x, y)
   return distance
 end
 
-function Biome:addObject(tiles, layer, rng)
-  local object = object.Object:new(tiles, self.z, layer)
+function Biome:addObject(object, rng)
   -- search for an origin
+  local tiles = object.tileList
   local tilesToRemove = nil
   local origin = nil
 
@@ -90,10 +91,26 @@ function Biome:addObject(tiles, layer, rng)
 end
 
 function Biome:createObjects(rng)
-  for _ = 1,10 do
-    self:addObject(object.TilePatterns.SmallSquare, 1, rng)
-    self:addObject(object.TilePatterns.Character, 2, rng)
-    self:addObject(object.TilePatterns.House, 1, rng)
+  for _, codeUnit in ipairs(self.codeSpace.components) do
+    if codeUnit:isCodespace() then
+      self:addObject(
+        object.House:new(self.z, rng:randomi(4,7), rng:randomi(3,5)),
+        rng
+      )
+    elseif codeUnit:isFunction() then
+      self:addObject(
+        object.House:new(self.z, rng:randomi(3,4), rng:randomi(3,4)),
+        rng
+      )
+    elseif codeUnit:isValue() then
+      for _ = 1,rng:randomi(3,10) do
+        local name = "blue"
+        if self.type ~= Types.PLAIN and self.type ~= Types.VILLAGE then
+          name = "red"
+        end
+        self:addObject(object.Character:new(self.z, name), rng)
+      end
+    end
   end
 end
 

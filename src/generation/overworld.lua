@@ -189,12 +189,14 @@ local function generateOverworld(codespaces, ecsWorld, tileIndex)
 
   local transitions = createTransitions(biomes, biomeTiles)
   createTransitionEntities(ecsWorld, tileIndex, transitions)
+  
+  local map = world.Map:new({tiles = tiles})
+  map:toEntities(ecsWorld, tileIndex)
 
   for _, b in ipairs(biomes) do
     b:createObjects(rng); b:createObjectEntities(ecsWorld, tileIndex)
   end
 
-  local map = world.Map:new({tiles = tiles})
   return map
 end
 

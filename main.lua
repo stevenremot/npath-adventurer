@@ -39,9 +39,8 @@ function love.load()
   local ast = parser.parseDir('src/')
   local seg = segmentation.segmentCodeSpace(ast, { minComplexity = 10, maxComplexity = 20, dungeonRatio = 0 })
   local map = overworld.generateOverworld(seg.overworld, world, tileRenderSystem.index)
-  map:toEntities(world, tileRenderSystem.index)
   mapWidth, mapHeight =
-    #map.tiles, #map.tiles[1]
+  #map.tiles, #map.tiles[1]
 
   gui.createButton(
     world,
@@ -64,7 +63,7 @@ function love.load()
   world:addComponent(gummy, player.Player:new())
 
   character.createCharacter(
-    world, "gummy",
+    world, "red",
     15, 12,
     tileRenderSystem.index,
     10, "baddies"
