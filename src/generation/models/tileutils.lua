@@ -109,7 +109,40 @@ function TileMask:contains(...)
   return b
 end
 
+--------------------------------------------------------------------------------
+-- Returns a list of the TileMask's tiles 
+function TileMask:toList()
+  local l = {}
+  for i, line in pairs(self) do
+    for j, _ in pairs(line) do
+      l[#l+1] = {i, j}
+    end
+  end
+  return l
+end
+
+function TileMask:match(origin, tileList)
+  local translatedList = {}
+  for _, tile in ipairs(tileList) do
+    table.insert(translatedList, tileSum(origin, tile))
+  end
+  if self:contains(unpack(translatedList)) then
+    return translatedList
+  else
+    return nil
+  end
+end
+
+
 MetaTileMask.__index = TileMask
+
+--[[
+t = TileMask:new({1,1}, {2,2}, {2,5})
+l = t:toList()
+for _, tile in ipairs(l) do
+  print(tile[1], tile[2])
+end
+--]]
 
 return {
   TileMask = TileMask,

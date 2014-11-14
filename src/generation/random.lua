@@ -81,6 +81,17 @@ function Rng:randomDensityListElement(list)
   return element
 end
 
+--- Random permutation of (1, ..., n) using Knuth shuffle algorithm
+function Rng:randomPermutation(n)
+  local permutation = {}
+  for i = 1, n do
+    local j = self:randomi(1,i)
+    permutation[i] = permutation[j]
+    permutation[j] = i
+  end
+  return permutation
+end
+
 MetaRng.__index = Rng
 
 local function test()
