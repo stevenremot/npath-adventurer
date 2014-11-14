@@ -62,6 +62,7 @@ function love.load()
     10, "hero"
   )
   world:addComponent(gummy, player.Player:new())
+  world:addComponent(gummy, movement.TileRestrained:new{ x = {10, 20}})
 
   character.createCharacter(
     world, "gummy",
